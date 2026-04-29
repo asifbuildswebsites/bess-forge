@@ -9,6 +9,7 @@ export interface SizingInputs {
   solarKWp: number;
   chemistry: Chemistry;
   cellCapacityAh: number;
+  parallelStrings: number;
   dodPct: number; // 50-100
   rteEffPct: number; // 80-95
 }
@@ -49,7 +50,7 @@ export function computeSizing(i: SizingInputs): SizingResults {
   const cellsSeries = Math.ceil(PACK_NOMINAL_VOLTAGE / cellV);
   const cellEnergyKWh = (cellV * i.cellCapacityAh) / 1000;
   const stringEnergyKWh = cellsSeries * cellEnergyKWh;
-  const parallelStrings = Math.max(1, Math.ceil(nameplateKWh / stringEnergyKWh));
+  const parallelStrings = Math.max(1, Math.min(50, Math.round(i.parallelStrings || Math.ceil(nameplateKWh / stringEnergyKWh))));
   // Rough rack pad estimate for early-stage sizing.
   const footprintM2 = parallelStrings * 1.2;
   return {

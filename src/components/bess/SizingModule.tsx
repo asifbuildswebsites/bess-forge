@@ -2,19 +2,28 @@ import { useBess } from "@/store/bess-store";
 import { MetricCard } from "@/components/bess/MetricCard";
 import { formatNum } from "@/lib/bess-calc";
 import type { ReactNode } from "react";
+import { useState } from "react";
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 
 export function SizingModule() {
-  const { sizing, inputs, thermal } = useBess();
-  const visualSeriesSegments = 12;
-  const visualParallelRows = Math.min(Math.max(sizing.parallelStrings, 2), 6);
-  const cellsPerSeriesSegment = Math.ceil(sizing.cellsSeries / visualSeriesSegments);
-  const isThermalBorderline = thermal.ambientC >= 42 || sizing.cRate > 1;
-  const cellTone = isThermalBorderline
-    ? "bg-pulse-amber/18 border-pulse-amber/55 text-pulse-amber glow-amber"
-    : "bg-pulse-cyan/14 border-pulse-cyan/50 text-pulse-cyan glow-cyan";
+  const { sizing, inputs, setInputs, thermal } = useBess();
+  const [selectedCell, setSelectedCell] = useState<string | null>(null);
+  const rackSeriesCells = 250;
+  const rackParallelStrings = inputs.parallelStrings;
+  const isHot = thermal.ambientC >= 45 || sizing.cRate > 2;
+  const isWarm = !isHot && (thermal.ambientC >= 42 || sizing.cRate >= 1);
+  const cellTone = isHot
+    ? "border-pulse-red/60 bg-pulse-red/30 text-pulse-red"
+    : isWarm
+      ? "border-pulse-amber/60 bg-pulse-amber/25 text-pulse-amber"
+      : "border-pulse-cyan/55 bg-pulse-cyan/18 text-pulse-cyan";
+  const selectedCellTone = isHot
+    ? "ring-pulse-red bg-pulse-red/55"
+    : isWarm
+      ? "ring-pulse-amber bg-pulse-amber/50"
+      : "ring-pulse-cyan bg-pulse-cyan/45";
   const chemistryVoltage = inputs.chemistry === "LFP" ? 3.2 : inputs.chemistry === "NMC" ? 3.6 : 2.4;
-  const nominalStringVoltage = sizing.cellsSeries * chemistryVoltage;
+  const nominalStringVoltage = rackSeriesCells * chemistryVoltage;
   const capacityPerStringKWh = (nominalStringVoltage * inputs.cellCapacityAh) / 1000;
   const footprintScale = Math.max(0.28, Math.min(1, Math.sqrt(sizing.footprintM2 / 145)));
   const cRateStatus =
@@ -74,57 +83,77 @@ export function SizingModule() {
             Pack Configuration
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
-            <Stat label="Cells in Series" value={formatNum(sizing.cellsSeries)} sub="@ 800V bus" />
+            <Stat label="Cells in Series" value={formatNum(rackSeriesCells)} sub="@ 800V bus" />
             <Stat
               label="Parallel Strings"
               value={formatNum(sizing.parallelStrings)}
               sub={`${inputs.cellCapacityAh} Ah cells`}
             />
-            <Stat label="Total Cells" value={formatNum(sizing.totalCells)} sub="approximate" />
+            <Stat label="Total Cells" value={formatNum(rackSeriesCells * rackParallelStrings)} sub="live rack count" />
           </div>
 
-          <div className="mt-8 overflow-x-auto rounded-md border border-border bg-void/40 p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="mt-8 rounded-md border border-border bg-void/40 p-4">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Rack Diagram
+                Cells in Series: 250 @ 800V bus
               </div>
-              <div className="data-cell text-[10px] text-muted-foreground">
-                {sizing.cellsSeries}s × {sizing.parallelStrings}p
+              <div className="data-cell text-[10px] text-pulse-cyan">
+                Total Cells: {rackSeriesCells} × {rackParallelStrings} = {formatNum(rackSeriesCells * rackParallelStrings)}
               </div>
             </div>
+            <div className="mb-4 space-y-2">
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <label htmlFor="parallel-string-slider" className="text-foreground/80">
+                  Parallel strings
+                </label>
+                <span className="data-cell text-pulse-cyan">{rackParallelStrings}</span>
+              </div>
+              <input
+                id="parallel-string-slider"
+                type="range"
+                min={1}
+                max={50}
+                step={1}
+                value={rackParallelStrings}
+                onChange={(event) => setInputs({ parallelStrings: Number(event.target.value) })}
+                className="w-full accent-pulse-cyan"
+              />
+            </div>
             <div
-              className="grid min-w-[560px] gap-1.5 md:min-w-0"
-              style={{ gridTemplateColumns: `repeat(${visualSeriesSegments}, minmax(0, 1fr))` }}
+              className="grid max-h-[520px] overflow-auto rounded-sm border border-border bg-background/35 p-3 transition-all duration-300 chart-pan-zoom"
+              style={{ gridTemplateColumns: `repeat(${rackParallelStrings}, minmax(20px, 50px))`, gap: "0.25rem" }}
             >
-              {Array.from({ length: visualParallelRows * visualSeriesSegments }).map((_, i) => {
-                const row = Math.floor(i / visualSeriesSegments) + 1;
-                const col = (i % visualSeriesSegments) + 1;
-                const sStart = (col - 1) * cellsPerSeriesSegment + 1;
-                const sEnd = Math.min(col * cellsPerSeriesSegment, sizing.cellsSeries);
+              {Array.from({ length: rackSeriesCells * rackParallelStrings }).map((_, i) => {
+                const series = Math.floor(i / rackParallelStrings) + 1;
+                const parallel = (i % rackParallelStrings) + 1;
+                const id = `S${series} × P${parallel}`;
+                const isSelected = selectedCell === id;
                 return (
-                  <div
-                    key={`${row}-${col}`}
-                    className={`flex min-h-11 items-center justify-center rounded-sm border px-1 text-center transition-transform hover:-translate-y-0.5 ${cellTone}`}
-                    title={`Series cells ${sStart}-${sEnd}, parallel string ${row}`}
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setSelectedCell(id)}
+                    className={`aspect-square max-h-[50px] max-w-[50px] min-w-5 border text-[0px] transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 focus:outline-none focus:ring-1 ${cellTone} ${
+                      isSelected ? `ring-1 ${selectedCellTone}` : ""
+                    }`}
+                    title={`${id} — ${isHot ? "Hot" : isWarm ? "Warm" : "Normal"}`}
+                    aria-label={`${id} ${isHot ? "hot" : isWarm ? "warm" : "normal"}`}
                   >
-                    <span className="data-cell text-[9px] leading-tight">
-                      S{sStart}-{sEnd}
-                      <br />× P{row}
-                    </span>
-                  </div>
+                    {id}
+                  </button>
                 );
               })}
             </div>
-            {sizing.parallelStrings > visualParallelRows && (
-              <div className="mt-2 text-center data-cell text-[10px] text-muted-foreground">
-                + {formatNum(sizing.parallelStrings - visualParallelRows)} additional parallel
-                strings
-              </div>
-            )}
+            <div className="mt-3 flex flex-wrap items-center gap-3 data-cell text-[10px] text-muted-foreground">
+              <StatusDot className="bg-pulse-cyan" label="Normal" />
+              <StatusDot className="bg-pulse-amber" label="Warm" />
+              <StatusDot className="bg-pulse-red" label="Hot" />
+              {selectedCell && <span className="text-foreground">Selected: {selectedCell}</span>}
+            </div>
             <div className="mt-5 grid gap-3 md:grid-cols-[1fr_0.8fr]">
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <LegendItem label="Total cells" value={formatNum(sizing.totalCells)} />
-                <LegendItem label="Voltage" value={`${formatNum(sizing.cellsSeries)} × ${chemistryVoltage}V = ${formatNum(nominalStringVoltage, 0)}V`} />
+                <LegendItem label="Total cells" value={`${rackSeriesCells} × ${rackParallelStrings} = ${formatNum(rackSeriesCells * rackParallelStrings)}`} />
+                <LegendItem label="Voltage" value={`${rackSeriesCells} × ${chemistryVoltage}V = ${formatNum(nominalStringVoltage, 0)}V`} />
                 <LegendItem
                   label="Capacity / string"
                   value={`${formatNum(capacityPerStringKWh, 0)} kWh`}
@@ -152,8 +181,7 @@ export function SizingModule() {
             </div>
           </div>
           <p className="text-[10px] text-muted-foreground mt-4 data-cell">
-            Visual: representative rack layout; {isThermalBorderline ? "amber" : "teal"} blocks
-            indicate thermal status.
+            Visual: one representative rack; slider controls parallel string columns.
           </p>
         </div>
 
@@ -168,7 +196,7 @@ export function SizingModule() {
             Applied DOD {inputs.dodPct}% & RTE {inputs.rteEffPct}%
           </LogLine>
           <LogLine ts="00:00:03" color="text-foreground">
-            Selected {inputs.chemistry} cells, {sizing.cellsSeries}s × {sizing.parallelStrings}p
+            Selected {inputs.chemistry} cells, {rackSeriesCells}s × {rackParallelStrings}p
           </LogLine>
           <LogLine ts="00:00:04" color={sizing.cRate > 1 ? "text-pulse-amber" : "text-pulse-green"}>
             C-rate {sizing.cRate.toFixed(2)} —{" "}
@@ -203,6 +231,15 @@ function LegendItem({ label, value }: { label: string; value: string }) {
       </div>
       <div className="data-cell mt-1 text-xs text-foreground">{value}</div>
     </div>
+  );
+}
+
+function StatusDot({ className, label }: { className: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className={`size-2 rounded-full ${className}`} />
+      {label}
+    </span>
   );
 }
 
