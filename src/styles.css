@@ -145,3 +145,148 @@ html[data-theme="light"] .dark {
   touch-action: pinch-zoom pan-x pan-y;
   overscroll-behavior: contain;
 }
+
+/* ═══════════════════════════════════════════════════════════ */
+/* ANIMATIONS — Loading, Error, Success states                 */
+/* ═══════════════════════════════════════════════════════════ */
+
+/* Shake animation for invalid inputs */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Shimmer effect for skeleton loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--color-panel) 25%, oklch(0.18 0.02 250) 50%, var(--color-panel) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Pulse green for success state */
+@keyframes pulse-success {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.85 0.22 150 / 0.4); }
+  50% { box-shadow: 0 0 0 8px oklch(0.85 0.22 150 / 0); }
+}
+
+.animate-pulse-success {
+  animation: pulse-success 1.5s ease-in-out infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/* PRINT STYLESHEET — For PDF export and hardcopy reports      */
+/* ═══════════════════════════════════════════════════════════ */
+@media print {
+  /* Force light background for printing */
+  html, body {
+    background: white !important;
+    color: #1a1a2e !important;
+  }
+
+  /* Hide interactive elements and navigation */
+  aside,
+  [class*="sidebar"],
+  .md\:flex,
+  [aria-label="Open settings"],
+  button,
+  input[type="range"],
+  input[type="number"],
+  select,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Show main content full width */
+  main {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Remove dark mode colors */
+  .dark {
+    --color-background: white;
+    --color-foreground: #1a1a2e;
+    --color-card: #f5f5f5;
+    --color-card-foreground: #1a1a2e;
+    --color-border: #e5e5e5;
+    --color-muted-foreground: #666;
+  }
+
+  /* Style metric cards for print */
+  [class*="metric-card"],
+  .bg-panel {
+    background: #f8f8f8 !important;
+    border: 1px solid #ddd !important;
+    break-inside: avoid;
+  }
+
+  /* Ensure text is readable */
+  .text-muted-foreground {
+    color: #666 !important;
+  }
+
+  .data-cell {
+    color: #1a1a2e !important;
+  }
+
+  /* Add print header */
+  main::before {
+    content: "BESS-CALC INDIA — Battery Storage Sizing Report";
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #1a1a2e;
+  }
+
+  main::after {
+    content: "\A\ADisclaimer: For preliminary sizing only — consult detailed engineering for procurement.";
+    white-space: pre;
+    font-size: 10px;
+    color: #888;
+    margin-top: 24px;
+    padding-top: 8px;
+    border-top: 1px solid #ddd;
+  }
+
+  /* Remove shadows and effects */
+  [class*="glow"],
+  [class*="shadow"],
+  .animate-pulse,
+  .animate-spin {
+    box-shadow: none !important;
+    animation: none !important;
+  }
+
+  /* Ensure page breaks don't split cards */
+  .grid {
+    break-inside: avoid;
+  }
+
+  /* Print-friendly links */
+  a {
+    color: #1a1a2e;
+    text-decoration: underline;
+  }
+}

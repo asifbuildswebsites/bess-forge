@@ -435,3 +435,127 @@ export function formatNum(n: number, digits = 0): string {
     maximumFractionDigits: digits,
   });
 }
+
+// ─── Thermal Heatmap Data Generation ─────────────────────────────────────────
+export interface CellTemperature {
+  series: number;
+  parallel: number;
+  temperature: number;
+  isCenter: boolean;
+}
+
+export interface ThermalHeatmapData {
+  cells: CellTemperature[];
+  maxTemp: number;
+  minTemp: number;
+  avgTemp: number;
+}
+
+/**
+ * Generate simulated cell temperatures for the battery rack heatmap.
+ * Temperature model:
+ * - Center cells: ambient + (C-rate × 8°C) + variance(±2°C)
+ * - Edge cells: ambient + (C-rate × 4°C) + variance(±2°C)
+ */
+export function generateThermalHeatmap(
+  seriesCount: number,
+  parallelCount: number,
+  ambientC: number,
+  cRate: number,
+  seed = 42,
+): ThermalHeatmapData {
+  // Simple pseudo-random number generator for consistent results
+  let randomState = seed;
+  const random = () => {
+    randomState = (randomState * 1103515245 + 12345) & 0x7fffffff;
+    return (randomState % 1000) / 1000;
+  };
+
+  const cells: CellTemperature[] = [];
+  let totalTemp = 0;
+  let maxTemp = -Infinity;
+  let minTemp = Infinity;
+
+  // Determine if a cell is center or edge based on position
+  const isCenterCell = (s: number, p: number) => {
+    const sCenter = s > seriesCount * 0.2 && s < seriesCount * 0.8;
+    const pCenter = p > parallelCount * 0.2 && p < parallelCount * 0.8;
+    return sCenter && pCenter;
+  };
+
+  for (let s = 1; s <= seriesCount; s++) {
+    for (let p = 1; p <= parallelCount; p++) {
+      const center = isCenterCell(s, p);
+      // Base temperature rise based on position
+      const baseRise = center ? cRate * 8 : cRate * 4;
+      // Random variance ±2°C
+      const variance = (random() - 0.5) * 4;
+      const temperature = ambientC + baseRise + variance;
+
+      cells.push({
+        series: s,
+        parallel: p,
+        temperature: Math.round(temperature * 10) / 10,
+        isCenter: center,
+      });
+
+      totalTemp += temperature;
+      if (temperature > maxTemp) maxTemp = temperature;
+      if (temperature < minTemp) minTemp = temperature;
+    }
+  }
+
+  return {
+    cells,
+    maxTemp: Math.round(maxTemp * 10) / 10,
+    minTemp: Math.round(minTemp * 10) / 10,
+    avgTemp: Math.round((totalTemp / cells.length) * 10) / 10,
+  };
+}
+
+/**
+ * Get temperature color based on value.
+ * 25°C → blue, 35°C → green, 45°C → orange, 55°C+ → red
+ */
+export function getTemperatureColor(temp: number): string {
+  if (temp < 30) return "bg-blue-500";
+  if (temp < 35) return "bg-cyan-500";
+  if (temp < 40) return "bg-green-500";
+  if (temp < 45) return "bg-yellow-500";
+  if (temp < 50) return "bg-orange-500";
+  return "bg-red-500";
+}
+
+/**
+ * Get temperature color for text/border.
+ */
+export function getTemperatureTextColor(temp: number): string {
+  if (temp < 30) return "text-blue-400 border-blue-500/50 bg-blue-500/20";
+  if (temp < 35) return "text-cyan-400 border-cyan-500/50 bg-cyan-500/20";
+  if (temp < 40) return "text-green-400 border-green-500/50 bg-green-500/20";
+  if (temp < 45) return "text-yellow-400 border-yellow-500/50 bg-yellow-500/20";
+  if (temp < 50) return "text-orange-400 border-orange-500/50 bg-orange-500/20";
+  return "text-red-400 border-red-500/50 bg-red-500/20";
+}
+
+/**
+ * Get temperature distribution data for charting.
+ * Returns average temperature per series position.
+ */
+export function getTemperatureDistribution(
+  cells: CellTemperature[],
+  seriesCount: number,
+): { position: number; temperature: number }[] {
+  const distribution: { position: number; temperature: number }[] = [];
+
+  for (let s = 1; s <= seriesCount; s++) {
+    const seriesCells = cells.filter((c) => c.series === s);
+    const avgTemp = seriesCells.reduce((sum, c) => sum + c.temperature, 0) / seriesCells.length;
+    distribution.push({
+      position: s,
+      temperature: Math.round(avgTemp * 10) / 10,
+    });
+  }
+
+  return distribution;
+}

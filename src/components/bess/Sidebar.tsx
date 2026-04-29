@@ -142,14 +142,14 @@ function SidebarControls() {
 
   return (
     <>
-      <div className="p-6 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div className="size-9 bg-pulse-cyan glow-cyan rounded-sm flex items-center justify-center text-void font-bold">
+      <div className="p-4 md:p-6 border-b border-border">
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className="size-8 md:size-9 bg-pulse-cyan glow-cyan rounded-sm flex items-center justify-center text-void font-bold shrink-0">
             B
           </div>
-          <div>
-            <h1 className="font-semibold tracking-tight text-sm">BESS-CALC INDIA</h1>
-            <p className="text-[10px] text-muted-foreground data-cell tracking-widest">
+          <div className="min-w-0">
+            <h1 className="font-semibold tracking-tight text-xs md:text-sm truncate">BESS-Calc</h1>
+            <p className="text-[9px] md:text-[10px] text-muted-foreground data-cell tracking-widest hidden sm:block">
               INTERACTIVE SIZING
             </p>
           </div>
@@ -241,6 +241,38 @@ function SidebarControls() {
             max={50}
             step={1}
           />
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              State Presets
+            </label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {[
+                { name: "RJ", temp: 42 },
+                { name: "GJ", temp: 40 },
+                { name: "MH", temp: 38 },
+                { name: "TN", temp: 36 },
+                { name: "KA", temp: 34 },
+                { name: "Default", temp: 35 },
+              ].map((preset) => {
+                const isActive = thermal.ambientC === preset.temp;
+                return (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => setThermal({ ambientC: preset.temp })}
+                    className={`h-7 rounded border text-[10px] transition-colors ${
+                      isActive
+                        ? "border-pulse-cyan bg-pulse-cyan/12 text-pulse-cyan"
+                        : "border-border bg-void text-muted-foreground hover:border-pulse-cyan/50"
+                    }`}
+                    title={`${preset.name}: ${preset.temp}°C`}
+                  >
+                    {preset.name} {preset.temp}°
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <div className="space-y-2">
             <InlineSelect
               label="Cell Capacity"

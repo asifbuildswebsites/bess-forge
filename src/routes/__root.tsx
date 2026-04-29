@@ -1,6 +1,7 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { BessProvider } from "@/store/bess-store";
+import { ToastProvider } from "@/components/ui/toast";
 
 function NotFoundComponent() {
   return (
@@ -80,8 +81,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <BessProvider>
-      <Outlet />
-    </BessProvider>
+    <ToastProvider>
+      <BessProvider>
+        <Outlet />
+      </BessProvider>
+    </ToastProvider>
   );
 }
