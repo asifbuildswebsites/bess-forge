@@ -49,9 +49,9 @@ export function CompareModule() {
         <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
           State of Health · Side-by-Side
         </h3>
-        <div className="h-80">
+        <div className="chart-pan-zoom h-80 w-full md:h-96">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={sohData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+            <LineChart data={sohData} margin={{ top: 10, right: 18, left: -14, bottom: 10 }}>
               <CartesianGrid stroke="oklch(0.25 0.025 250)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="year"
@@ -203,7 +203,7 @@ function ChemPanel({
           {name === "LFP" ? "Iron Phosphate" : "Nickel Mn Cobalt"}
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <MetricCard label="Footprint" value={formatNum(result.sizing.footprintM2)} unit="m²" />
         <MetricCard label="CAPEX" value={formatINR(result.economics.capex)} variant="cyan" />
         <MetricCard
