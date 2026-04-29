@@ -41,9 +41,9 @@ const CELL_AH = 280;
 // LFP baseline ≈ 30 m²/MWh; NMC ~30% denser → ~21 m²/MWh; NCA ~22% denser than that.
 // (covers cabinets, BMS, HVAC, aisles, transformer pad, fire-gap)
 const FOOTPRINT_M2_PER_KWH: Record<Chemistry, number> = {
-  LFP: 0.0300,
+  LFP: 0.03,
   NMC: 0.0207, // 30% smaller than LFP — higher Wh/L
-  NCA: 0.0190,
+  NCA: 0.019,
 };
 
 export interface SizingResults {
@@ -113,8 +113,7 @@ export function computeThermal(t: ThermalInputs): {
   const arr = Math.exp(-Ea / (R * T));
   const cRateFactor = 1 + Math.max(0, t.cRate - 0.5) * 0.25; // C-rate stress >0.5C
   const dodFactor = Math.pow(t.dodPct / 80, 0.7); // deeper DoD → faster cyclic fade
-  const calFadePerYear =
-    CAL_FADE_PER_YEAR_25C[t.chemistry] * Math.pow(2, (t.ambientC - 25) / 10);
+  const calFadePerYear = CAL_FADE_PER_YEAR_25C[t.chemistry] * Math.pow(2, (t.ambientC - 25) / 10);
 
   const points: ThermalPoint[] = [];
   let eolYear: number | null = null;
@@ -172,10 +171,7 @@ function solarFactor(h: number): number {
   return Math.max(0, Math.sin(((h - 6.5) / 11.5) * Math.PI));
 }
 
-export function simulateDispatch(
-  s: SizingInputs,
-  sizing: SizingResults,
-): DispatchResult {
+export function simulateDispatch(s: SizingInputs, sizing: SizingResults): DispatchResult {
   const dt = 0.5; // hour
   const points: DispatchPoint[] = [];
   let soc = 50;
@@ -213,7 +209,7 @@ export function simulateDispatch(
     if (energyDelta >= 0) {
       soc -= (energyDelta / usable) * 100;
     } else {
-      soc -= (energyDelta * (s.rteEffPct / 100) / usable) * 100;
+      soc -= ((energyDelta * (s.rteEffPct / 100)) / usable) * 100;
     }
     soc = Math.max(5, Math.min(100, soc));
 
@@ -295,9 +291,7 @@ export function computeEconomics(e: EconomicsInputs): EconomicsResults {
 
   const arbitrageSavings = rev.todArbitrage ? e.dispatch.annualSavings : 0;
   // Demand-charge reduction: contracted kVA × ₹/kVA/month × 12
-  const demandChargeSavings = rev.demandCharge
-    ? rev.contractedKVA * rev.demandRatePerKVA * 12
-    : 0;
+  const demandChargeSavings = rev.demandCharge ? rev.contractedKVA * rev.demandRatePerKVA * 12 : 0;
 
   const annualSavings = arbitrageSavings + demandChargeSavings;
   const netAnnual = annualSavings - annualOpex;

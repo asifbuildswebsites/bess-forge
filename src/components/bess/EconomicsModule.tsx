@@ -72,7 +72,9 @@ export function EconomicsModule() {
     const scenarioInputs = {
       ...inputs,
       solarKWp:
-        variable === "solar" ? Math.max(0, Math.min(5000, inputs.solarKWp * multiplier)) : inputs.solarKWp,
+        variable === "solar"
+          ? Math.max(0, Math.min(5000, inputs.solarKWp * multiplier))
+          : inputs.solarKWp,
       dodPct:
         variable === "dod" ? Math.max(70, Math.min(95, inputs.dodPct * multiplier)) : inputs.dodPct,
     };
@@ -335,20 +337,29 @@ export function EconomicsModule() {
         </div>
         <div className="space-y-4">
           {sensitivityRows.map((row) => (
-            <div key={row.label} className="grid gap-2 md:grid-cols-[150px_1fr_86px] md:items-center">
+            <div
+              key={row.label}
+              className="grid gap-2 md:grid-cols-[150px_1fr_86px] md:items-center"
+            >
               <div>
                 <div className="text-xs font-semibold text-foreground">{row.label}</div>
-                <div className="data-cell text-[10px] text-muted-foreground">±20% · {row.range}</div>
+                <div className="data-cell text-[10px] text-muted-foreground">
+                  ±20% · {row.range}
+                </div>
               </div>
               <div className="relative h-9 rounded-sm border border-border bg-background/45">
                 <div className="absolute left-1/2 top-0 h-full w-px bg-muted-foreground/35" />
                 <div
                   className="absolute right-1/2 top-2 h-5 rounded-l-xs border border-pulse-red/50 bg-pulse-red/35"
-                  style={{ width: `${(Math.abs(Math.min(row.lowDelta, row.highDelta, 0)) / maxSensitivityDelta) * 50}%` }}
+                  style={{
+                    width: `${(Math.abs(Math.min(row.lowDelta, row.highDelta, 0)) / maxSensitivityDelta) * 50}%`,
+                  }}
                 />
                 <div
                   className="absolute left-1/2 top-2 h-5 rounded-r-xs border border-pulse-green/50 bg-pulse-green/30"
-                  style={{ width: `${(Math.max(row.lowDelta, row.highDelta, 0) / maxSensitivityDelta) * 50}%` }}
+                  style={{
+                    width: `${(Math.max(row.lowDelta, row.highDelta, 0) / maxSensitivityDelta) * 50}%`,
+                  }}
                 />
               </div>
               <div className="data-cell text-right text-xs text-pulse-cyan">
