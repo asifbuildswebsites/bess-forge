@@ -86,7 +86,8 @@ export function generateReport(d: ReportData) {
       ["Autonomy", `${d.inputs.autonomyHours} hours`],
     ],
   });
-  const summaryY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 14;
+  const summaryY =
+    (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 14;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.setTextColor(71, 85, 105);
@@ -99,7 +100,11 @@ export function generateReport(d: ReportData) {
   doc.rect(14, h - 38, w - 28, 1, "F");
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
-  doc.text("Prepared as a consulting-style screening deliverable. Validate assumptions before investment approval.", 14, h - 24);
+  doc.text(
+    "Prepared as a consulting-style screening deliverable. Validate assumptions before investment approval.",
+    14,
+    h - 24,
+  );
 
   doc.addPage();
 

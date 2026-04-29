@@ -45,7 +45,9 @@ export function EconomicsModule() {
   });
   useEffect(() => {
     setReportMeta((current) =>
-      current.reportDate ? current : { ...current, reportDate: new Date().toISOString().slice(0, 10) },
+      current.reportDate
+        ? current
+        : { ...current, reportDate: new Date().toISOString().slice(0, 10) },
     );
   }, []);
 
