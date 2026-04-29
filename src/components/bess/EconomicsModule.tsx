@@ -4,7 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   computeCashFlows,
   computeEconomics,
@@ -231,14 +238,20 @@ export function EconomicsModule() {
               {cashFlows.map((row) => (
                 <TableRow
                   key={row.year}
-                  className={row.paybackYear ? "bg-pulse-green/12 hover:bg-pulse-green/18" : undefined}
+                  className={
+                    row.paybackYear ? "bg-pulse-green/12 hover:bg-pulse-green/18" : undefined
+                  }
                 >
                   <TableCell className="data-cell text-pulse-cyan">{row.year}</TableCell>
-                  <TableCell className="data-cell text-right">{formatINR(row.annualSavings)}</TableCell>
+                  <TableCell className="data-cell text-right">
+                    {formatINR(row.annualSavings)}
+                  </TableCell>
                   <TableCell className="data-cell text-right text-pulse-amber">
                     {formatINR(row.opex)}
                   </TableCell>
-                  <TableCell className="data-cell text-right">{formatINR(row.netCashFlow)}</TableCell>
+                  <TableCell className="data-cell text-right">
+                    {formatINR(row.netCashFlow)}
+                  </TableCell>
                   <TableCell
                     className={`data-cell text-right ${row.cumulativeCashFlow >= 0 ? "text-pulse-green" : "text-pulse-red"}`}
                   >

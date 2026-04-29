@@ -379,8 +379,7 @@ export function computeCashFlows(
   return Array.from({ length: years }, (_, idx) => {
     const year = idx + 1;
     const soh = thermalResult.points[Math.min(year, thermalResult.points.length - 1)]?.soh ?? 100;
-    const annualSavings =
-      economics.arbitrageSavings * (soh / 100) + economics.demandChargeSavings;
+    const annualSavings = economics.arbitrageSavings * (soh / 100) + economics.demandChargeSavings;
     let netCashFlow = annualSavings - economics.annualOpex;
     if (economics.replacementYear !== null && year === economics.replacementYear) {
       netCashFlow -= economics.replacementCost;
