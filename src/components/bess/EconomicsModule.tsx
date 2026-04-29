@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useBess } from "@/store/bess-store";
 import { MetricCard } from "@/components/bess/MetricCard";
 import { Button } from "@/components/ui/button";
@@ -41,8 +41,13 @@ export function EconomicsModule() {
   const [reportMeta, setReportMeta] = useState({
     projectName: "Battery Energy Storage Project",
     clientName: "Client Name",
-    reportDate: new Date().toISOString().slice(0, 10),
+    reportDate: "",
   });
+  useEffect(() => {
+    setReportMeta((current) =>
+      current.reportDate ? current : { ...current, reportDate: new Date().toISOString().slice(0, 10) },
+    );
+  }, []);
 
   const handleExport = () => {
     generateReport({ inputs, sizing, thermal, thermalResult, dispatch, economics, reportMeta });
