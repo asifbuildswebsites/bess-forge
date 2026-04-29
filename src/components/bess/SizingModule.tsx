@@ -1,9 +1,21 @@
 import { useBess } from "@/store/bess-store";
 import { MetricCard } from "@/components/bess/MetricCard";
 import { formatNum } from "@/lib/bess-calc";
+import type { ReactNode } from "react";
 
 export function SizingModule() {
-  const { sizing, inputs } = useBess();
+  const { sizing, inputs, thermal } = useBess();
+  const visualSeriesSegments = 12;
+  const visualParallelRows = Math.min(Math.max(sizing.parallelStrings, 2), 6);
+  const cellsPerSeriesSegment = Math.ceil(sizing.cellsSeries / visualSeriesSegments);
+  const isThermalBorderline = thermal.ambientC >= 42 || sizing.cRate > 1;
+  const cellTone = isThermalBorderline
+    ? "bg-pulse-amber/18 border-pulse-amber/55 text-pulse-amber glow-amber"
+    : "bg-pulse-cyan/14 border-pulse-cyan/50 text-pulse-cyan glow-cyan";
+  const nominalVoltage = sizing.cellsSeries * 3.2;
+  const capacityPerStringKWh = (nominalVoltage * 280) / 1000;
+  const footprintScale = Math.max(0.28, Math.min(1, Math.sqrt(sizing.footprintM2 / 145)));
+
   return (
     <div className="space-y-8">
       <div>
@@ -58,17 +70,72 @@ export function SizingModule() {
             <Stat label="Total Cells" value={formatNum(sizing.totalCells)} sub="approximate" />
           </div>
 
-          <div className="mt-8 grid grid-cols-12 gap-1.5">
-            {Array.from({ length: Math.min(sizing.parallelStrings * 12, 96) }).map((_, i) => (
-              <div
-                key={i}
-                className="aspect-square bg-pulse-cyan/10 border border-pulse-cyan/30 rounded-xs"
-                title={`Module ${i + 1}`}
-              />
-            ))}
+          <div className="mt-8 rounded-md border border-border bg-void/40 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Rack Diagram
+              </div>
+              <div className="data-cell text-[10px] text-muted-foreground">
+                {sizing.cellsSeries}s × {sizing.parallelStrings}p
+              </div>
+            </div>
+            <div
+              className="grid gap-1.5"
+              style={{ gridTemplateColumns: `repeat(${visualSeriesSegments}, minmax(0, 1fr))` }}
+            >
+              {Array.from({ length: visualParallelRows * visualSeriesSegments }).map((_, i) => {
+                const row = Math.floor(i / visualSeriesSegments) + 1;
+                const col = (i % visualSeriesSegments) + 1;
+                const sStart = (col - 1) * cellsPerSeriesSegment + 1;
+                const sEnd = Math.min(col * cellsPerSeriesSegment, sizing.cellsSeries);
+                return (
+                  <div
+                    key={`${row}-${col}`}
+                    className={`flex min-h-11 items-center justify-center rounded-sm border px-1 text-center transition-transform hover:-translate-y-0.5 ${cellTone}`}
+                    title={`Series cells ${sStart}-${sEnd}, parallel string ${row}`}
+                  >
+                    <span className="data-cell text-[9px] leading-tight">
+                      S{sStart}-{sEnd}
+                      <br />× P{row}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            {sizing.parallelStrings > visualParallelRows && (
+              <div className="mt-2 text-center data-cell text-[10px] text-muted-foreground">
+                + {formatNum(sizing.parallelStrings - visualParallelRows)} additional parallel strings
+              </div>
+            )}
+            <div className="mt-5 grid gap-3 md:grid-cols-[1fr_0.8fr]">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <LegendItem label="Total cells" value={formatNum(sizing.totalCells)} />
+                <LegendItem
+                  label="Voltage"
+                  value={`${formatNum(sizing.cellsSeries)} × 3.2V = ${formatNum(nominalVoltage, 0)}V`}
+                />
+                <LegendItem label="Capacity / string" value={`${formatNum(capacityPerStringKWh, 0)} kWh`} />
+              </div>
+              <div className="rounded-sm border border-border bg-background/35 p-3">
+                <div className="mb-2 flex items-center justify-between gap-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+                  <span>Footprint</span>
+                  <span className="data-cell normal-case">145m² ref.</span>
+                </div>
+                <div className="flex h-16 items-end justify-center rounded-xs border border-dashed border-muted-foreground/35 p-2">
+                  <div
+                    className="rounded-xs border border-fiber-violet bg-fiber-violet/25"
+                    style={{ width: `${footprintScale * 100}%`, height: `${footprintScale * 100}%` }}
+                    title={`${formatNum(sizing.footprintM2, 0)} m² footprint estimate`}
+                  />
+                </div>
+                <div className="mt-2 data-cell text-[10px] text-fiber-violet">
+                  {formatNum(sizing.footprintM2, 0)}m² estimated pad
+                </div>
+              </div>
+            </div>
           </div>
           <p className="text-[10px] text-muted-foreground mt-4 data-cell">
-            Visual: representative module layout (1 tile ≈ 1 string segment).
+            Visual: representative rack layout; {isThermalBorderline ? "amber" : "teal"} blocks indicate thermal status.
           </p>
         </div>
 
@@ -110,6 +177,17 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
   );
 }
 
+function LegendItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-sm border border-border bg-background/35 p-3">
+      <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+        {label}
+      </div>
+      <div className="data-cell mt-1 text-xs text-foreground">{value}</div>
+    </div>
+  );
+}
+
 function LogLine({
   ts,
   color,
@@ -117,7 +195,7 @@ function LogLine({
 }: {
   ts: string;
   color: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="flex gap-2 text-[11px] data-cell leading-tight">
