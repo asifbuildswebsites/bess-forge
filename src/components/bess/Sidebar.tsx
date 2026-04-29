@@ -237,7 +237,10 @@ function SidebarControls() {
 
 export function Sidebar() {
   return (
-    <aside className="hidden w-80 shrink-0 border-r border-border bg-panel md:flex flex-col h-screen sticky top-0">
+    <aside
+      suppressHydrationWarning
+      className="hidden w-80 shrink-0 border-r border-border bg-panel md:flex flex-col h-screen sticky top-0"
+    >
       <SidebarControls />
     </aside>
   );
