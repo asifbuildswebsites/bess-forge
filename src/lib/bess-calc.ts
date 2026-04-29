@@ -1,12 +1,14 @@
 // BESS-Calc India — calculation engine
 
-export type Chemistry = "LFP" | "NMC" | "NCA";
+export type Chemistry = "LFP" | "NMC" | "LTO";
 
 export interface SizingInputs {
   peakLoadKW: number;
+  desiredEnergyMWh: number;
   autonomyHours: number;
   solarKWp: number;
   chemistry: Chemistry;
+  cellCapacityAh: number;
   dodPct: number; // 70-95
   rteEffPct: number; // 85-98
 }
@@ -23,13 +25,13 @@ export interface ThermalInputs {
 const CELL_VOLTAGE: Record<Chemistry, number> = {
   LFP: 3.2,
   NMC: 3.6,
-  NCA: 3.65,
+  LTO: 2.4,
 };
 
 const ENERGY_DENSITY_WH_PER_L: Record<Chemistry, number> = {
   LFP: 250,
   NMC: 320,
-  NCA: 350,
+  LTO: 190,
 };
 
 // Pack: assume 800V DC bus typical for utility BESS
@@ -43,7 +45,7 @@ const CELL_AH = 280;
 const FOOTPRINT_M2_PER_KWH: Record<Chemistry, number> = {
   LFP: 0.03,
   NMC: 0.0207, // 30% smaller than LFP — higher Wh/L
-  NCA: 0.019,
+  LTO: 0.038,
 };
 
 export interface SizingResults {
@@ -57,16 +59,16 @@ export interface SizingResults {
 }
 
 export function computeSizing(i: SizingInputs): SizingResults {
-  const usableKWh = i.peakLoadKW * i.autonomyHours;
-  const nameplateKWh = usableKWh / ((i.dodPct / 100) * (i.rteEffPct / 100));
+  const nameplateKWh = i.desiredEnergyMWh * 1000;
+  const usableKWh = nameplateKWh * (i.dodPct / 100) * (i.rteEffPct / 100);
   const cRate = i.peakLoadKW / nameplateKWh;
   const cellV = CELL_VOLTAGE[i.chemistry];
   const cellsSeries = Math.ceil(PACK_NOMINAL_VOLTAGE / cellV);
-  const cellEnergyKWh = (cellV * CELL_AH) / 1000;
-  const totalCells = Math.ceil(nameplateKWh / cellEnergyKWh);
-  const parallelStrings = Math.max(1, Math.ceil(totalCells / cellsSeries));
-  // Chemistry-aware containerized footprint (incl. HVAC, aisles, fire-gaps)
-  const footprintM2 = nameplateKWh * FOOTPRINT_M2_PER_KWH[i.chemistry];
+  const cellEnergyKWh = (cellV * i.cellCapacityAh) / 1000;
+  const stringEnergyKWh = cellsSeries * cellEnergyKWh;
+  const parallelStrings = Math.max(1, Math.ceil(nameplateKWh / stringEnergyKWh));
+  // Rough rack pad estimate for early-stage sizing.
+  const footprintM2 = parallelStrings * 1.2;
   return {
     usableKWh,
     nameplateKWh,
