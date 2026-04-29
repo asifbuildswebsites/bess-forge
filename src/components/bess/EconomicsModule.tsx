@@ -8,8 +8,17 @@ import { Download, ArrowDown, AlertTriangle } from "lucide-react";
 import { generateReport } from "@/lib/pdf-report";
 
 export function EconomicsModule() {
-  const { economics, inputs, sizing, thermal, thermalResult, dispatch, revenue, setRevenue, setInputs } =
-    useBess();
+  const {
+    economics,
+    inputs,
+    sizing,
+    thermal,
+    thermalResult,
+    dispatch,
+    revenue,
+    setRevenue,
+    setInputs,
+  } = useBess();
 
   const handleExport = () => {
     generateReport({ inputs, sizing, thermal, thermalResult, dispatch, economics });
@@ -21,7 +30,11 @@ export function EconomicsModule() {
     {
       label: "Enable Demand Charge Reduction",
       detail: revenue.demandCharge ? "Enabled" : "Adds contracted-demand savings",
-      onClick: () => setRevenue({ demandCharge: true, contractedKVA: Math.max(revenue.contractedKVA, inputs.peakLoadKW) }),
+      onClick: () =>
+        setRevenue({
+          demandCharge: true,
+          contractedKVA: Math.max(revenue.contractedKVA, inputs.peakLoadKW),
+        }),
     },
     {
       label: "Reduce autonomy hours",
@@ -44,16 +57,32 @@ export function EconomicsModule() {
             CAPEX, payback, NPV (10% disc, 15y), and LCOES at ₹35,000/kWh installed cost.
           </p>
         </div>
-        <Button onClick={handleExport} className="bg-pulse-cyan text-void hover:bg-pulse-cyan/90 glow-cyan font-bold">
+        <Button
+          onClick={handleExport}
+          className="bg-pulse-cyan text-void hover:bg-pulse-cyan/90 glow-cyan font-bold"
+        >
           <Download className="size-4 mr-2" />
           Download Report (PDF)
         </Button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <MetricCard label="CAPEX" value={formatINR(economics.capex)} variant="cyan" hint="₹35,000/kWh × nameplate" />
-        <MetricCard label="Annual OPEX" value={formatINR(economics.annualOpex)} hint="1.5% of CAPEX" />
-        <MetricCard label="Annual Savings" value={formatINR(economics.annualSavings)} variant="green" />
+        <MetricCard
+          label="CAPEX"
+          value={formatINR(economics.capex)}
+          variant="cyan"
+          hint="₹35,000/kWh × nameplate"
+        />
+        <MetricCard
+          label="Annual OPEX"
+          value={formatINR(economics.annualOpex)}
+          hint="1.5% of CAPEX"
+        />
+        <MetricCard
+          label="Annual Savings"
+          value={formatINR(economics.annualSavings)}
+          variant="green"
+        />
         <MetricCard
           label="Simple Payback"
           value={
@@ -81,7 +110,11 @@ export function EconomicsModule() {
           label={`NPV @ 10% (${thermal.years}y)`}
           value={formatINR(economics.npv)}
           variant={economics.npv > 0 ? "green" : "red"}
-          hint={economics.replacementYear ? `incl. cell replace yr ${economics.replacementYear}` : "no replacement"}
+          hint={
+            economics.replacementYear
+              ? `incl. cell replace yr ${economics.replacementYear}`
+              : "no replacement"
+          }
         />
         <MetricCard
           label="LCOES"
@@ -118,7 +151,9 @@ export function EconomicsModule() {
                   <span className="ml-2 text-xs font-semibold text-foreground group-hover:text-pulse-amber">
                     {action.label}
                   </span>
-                  <span className="mt-1 block text-[10px] text-muted-foreground">{action.detail}</span>
+                  <span className="mt-1 block text-[10px] text-muted-foreground">
+                    {action.detail}
+                  </span>
                 </button>
               ))}
             </div>
@@ -130,7 +165,8 @@ export function EconomicsModule() {
         <div className="flex items-center gap-3 px-4 py-3 border border-pulse-cyan/40 bg-pulse-cyan/5 text-xs">
           <ArrowDown className="size-4 text-pulse-cyan animate-bounce shrink-0" />
           <span className="text-foreground/90">
-            Enable <span className="data-cell text-pulse-cyan">Demand Charge Reduction</span> below to model a viable business case.
+            Enable <span className="data-cell text-pulse-cyan">Demand Charge Reduction</span> below
+            to model a viable business case.
           </span>
         </div>
       )}
@@ -143,9 +179,12 @@ export function EconomicsModule() {
               Battery Replacement Event Modelled
             </div>
             <div className="text-foreground/80 mt-1">
-              SOH crosses 80% in <span className="data-cell text-pulse-amber">year {economics.replacementYear}</span>.
+              SOH crosses 80% in{" "}
+              <span className="data-cell text-pulse-amber">year {economics.replacementYear}</span>.
               NPV includes a cell-only swap of{" "}
-              <span className="data-cell text-pulse-amber">{formatINR(economics.replacementCost)}</span>{" "}
+              <span className="data-cell text-pulse-amber">
+                {formatINR(economics.replacementCost)}
+              </span>{" "}
               (60% of CAPEX — re-uses BMS / PCS / container / civils).
             </div>
           </div>
@@ -245,10 +284,10 @@ export function EconomicsModule() {
             </li>
             <li>
               <span className="text-pulse-amber data-cell">› NPV scope</span> — captures{" "}
-              <span className="text-foreground">ToD energy arbitrage only</span>. Demand /
-              capacity charges (kVA), DSM penalties, ancillary-services revenue and RE-firming
-              incentives are <span className="text-foreground">not</span> modelled — real-world
-              NPV is typically higher.
+              <span className="text-foreground">ToD energy arbitrage only</span>. Demand / capacity
+              charges (kVA), DSM penalties, ancillary-services revenue and RE-firming incentives are{" "}
+              <span className="text-foreground">not</span> modelled — real-world NPV is typically
+              higher.
             </li>
             <li>
               <span className="text-pulse-cyan data-cell">› LCOES</span> — CAPEX divided by lifetime
