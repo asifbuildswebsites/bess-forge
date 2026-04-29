@@ -139,3 +139,8 @@ html[data-theme="light"] .dark {
 @utility glow-amber {
   box-shadow: var(--shadow-glow-amber);
 }
+
+@utility chart-pan-zoom {
+  touch-action: pinch-zoom pan-x pan-y;
+  overscroll-behavior: contain;
+}
