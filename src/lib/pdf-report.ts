@@ -6,6 +6,7 @@ import {
   computeThermal,
   simulateDispatch,
   computeEconomics,
+  computeCashFlows,
   formatINR,
   formatNum,
 } from "./bess-calc";
@@ -139,6 +140,47 @@ export function generateReport(d: ReportData) {
       ["NPV @ 10% / 15y", formatINR(d.economics.npv)],
       ["LCOES", `₹${d.economics.lcoes.toFixed(2)}/kWh`],
     ],
+  });
+
+  y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
+  if (y > 225) {
+    doc.addPage();
+    y = 20;
+  }
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text("Year-by-Year Cash Flow", 14, y);
+  y += 4;
+  const cashFlows = computeCashFlows(d.economics, d.thermalResult, 15);
+  autoTable(doc, {
+    startY: y,
+    theme: "grid",
+    headStyles: { fillColor: [30, 38, 51], textColor: 255 },
+    styles: { fontSize: 8 },
+    columnStyles: {
+      0: { halign: "center" },
+      1: { halign: "right" },
+      2: { halign: "right" },
+      3: { halign: "right" },
+      4: { halign: "right" },
+      5: { halign: "right" },
+    },
+    head: [["Year", "Annual Savings", "OPEX", "Net Cash Flow", "Cumulative", "SOH%"]],
+    body: cashFlows.map((row) => [
+      `${row.year}`,
+      formatINR(row.annualSavings),
+      formatINR(row.opex),
+      formatINR(row.netCashFlow),
+      formatINR(row.cumulativeCashFlow),
+      `${row.soh.toFixed(1)}%`,
+    ]),
+    didParseCell: (data) => {
+      const row = cashFlows[data.row.index];
+      if (data.section === "body" && row?.paybackYear) {
+        data.cell.styles.fillColor = [220, 252, 231];
+        data.cell.styles.textColor = [20, 83, 45];
+      }
+    },
   });
 
   y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
