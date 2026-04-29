@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { formatINR, formatNum } from "@/lib/bess-calc";
-import { Download, ArrowDown } from "lucide-react";
+import { Download, ArrowDown, AlertTriangle } from "lucide-react";
 import { generateReport } from "@/lib/pdf-report";
 
 export function EconomicsModule() {
-  const { economics, inputs, sizing, thermal, thermalResult, dispatch, revenue, setRevenue } =
+  const { economics, inputs, sizing, thermal, thermalResult, dispatch, revenue, setRevenue, setInputs } =
     useBess();
 
   const handleExport = () => {
@@ -16,6 +16,24 @@ export function EconomicsModule() {
   };
 
   const simplePayback = isFinite(economics.paybackYears) ? economics.paybackYears : null;
+  const npvIsNegative = economics.npv < 0;
+  const viabilityActions = [
+    {
+      label: "Enable Demand Charge Reduction",
+      detail: revenue.demandCharge ? "Enabled" : "Adds contracted-demand savings",
+      onClick: () => setRevenue({ demandCharge: true, contractedKVA: Math.max(revenue.contractedKVA, inputs.peakLoadKW) }),
+    },
+    {
+      label: "Reduce autonomy hours",
+      detail: `${inputs.autonomyHours}h → ${Math.max(0.5, inputs.autonomyHours - 0.5)}h`,
+      onClick: () => setInputs({ autonomyHours: Math.max(0.5, inputs.autonomyHours - 0.5) }),
+    },
+    {
+      label: "Add Solar PV offset",
+      detail: `${formatNum(inputs.solarKWp)} → ${formatNum(Math.min(5000, inputs.solarKWp + 500))} kWp`,
+      onClick: () => setInputs({ solarKWp: Math.min(5000, inputs.solarKWp + 500) }),
+    },
+  ];
 
   return (
     <div className="space-y-8">
@@ -73,6 +91,40 @@ export function EconomicsModule() {
           hint={`${formatNum(thermal.years)}y × ${thermal.dailyCycles}c/day`}
         />
       </div>
+
+      {npvIsNegative && (
+        <div className="border border-pulse-amber/60 bg-pulse-amber/10 p-5 glow-amber">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 size-5 shrink-0 text-pulse-amber" />
+              <div>
+                <div className="data-cell text-xs font-bold uppercase tracking-widest text-pulse-amber">
+                  Negative NPV detected
+                </div>
+                <div className="mt-1 text-sm font-semibold text-foreground">
+                  3 levers to improve viability →
+                </div>
+              </div>
+            </div>
+            <div className="grid flex-1 gap-2 md:grid-cols-3 lg:max-w-3xl">
+              {viabilityActions.map((action, index) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  onClick={action.onClick}
+                  className="group border border-pulse-amber/35 bg-background/40 p-3 text-left transition-all hover:-translate-y-0.5 hover:border-pulse-amber hover:bg-pulse-amber/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse-amber"
+                >
+                  <span className="data-cell text-[10px] text-pulse-amber">({index + 1})</span>
+                  <span className="ml-2 text-xs font-semibold text-foreground group-hover:text-pulse-amber">
+                    {action.label}
+                  </span>
+                  <span className="mt-1 block text-[10px] text-muted-foreground">{action.detail}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {simplePayback === null && !revenue.demandCharge && (
         <div className="flex items-center gap-3 px-4 py-3 border border-pulse-cyan/40 bg-pulse-cyan/5 text-xs">
