@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useBess } from "@/store/bess-store";
 import { MetricCard } from "@/components/bess/MetricCard";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,12 @@ import {
 import { Download, ArrowDown, AlertTriangle, ChevronDown } from "lucide-react";
 import { generateReport } from "@/lib/pdf-report";
 
+const getDefaultReportDate = () => {
+  const today = new Date();
+  const offset = today.getTimezoneOffset() * 60_000;
+  return new Date(today.getTime() - offset).toISOString().slice(0, 10);
+};
+
 export function EconomicsModule() {
   const {
     economics,
@@ -41,15 +47,8 @@ export function EconomicsModule() {
   const [reportMeta, setReportMeta] = useState({
     projectName: "Battery Energy Storage Project",
     clientName: "Client Name",
-    reportDate: "",
+    reportDate: getDefaultReportDate,
   });
-  useEffect(() => {
-    setReportMeta((current) =>
-      current.reportDate
-        ? current
-        : { ...current, reportDate: new Date().toISOString().slice(0, 10) },
-    );
-  }, []);
 
   const handleExport = () => {
     generateReport({ inputs, sizing, thermal, thermalResult, dispatch, economics, reportMeta });
