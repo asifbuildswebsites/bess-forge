@@ -274,6 +274,16 @@ export interface EconomicsResults {
   replacementCost: number;
 }
 
+export interface CashFlowRow {
+  year: number;
+  annualSavings: number;
+  opex: number;
+  netCashFlow: number;
+  cumulativeCashFlow: number;
+  soh: number;
+  paybackYear: boolean;
+}
+
 const CAPEX_PER_KWH = 35000; // ₹ — 2025 Indian utility-scale BESS
 // Cell-only replacement is ~60% of original CAPEX (re-use BMS, PCS, container, civils)
 const REPLACEMENT_FRACTION = 0.6;
@@ -356,6 +366,40 @@ export function computeEconomics(e: EconomicsInputs): EconomicsResults {
     replacementYear,
     replacementCost,
   };
+}
+
+export function computeCashFlows(
+  economics: EconomicsResults,
+  thermalResult: { points: ThermalPoint[] },
+  years = 15,
+): CashFlowRow[] {
+  let cumulative = -economics.capex;
+  let paybackMarked = false;
+
+  return Array.from({ length: years }, (_, idx) => {
+    const year = idx + 1;
+    const soh = thermalResult.points[Math.min(year, thermalResult.points.length - 1)]?.soh ?? 100;
+    const annualSavings = economics.arbitrageSavings * (soh / 100) + economics.demandChargeSavings;
+    let netCashFlow = annualSavings - economics.annualOpex;
+    if (economics.replacementYear !== null && year === economics.replacementYear) {
+      netCashFlow -= economics.replacementCost;
+    }
+
+    const previousCumulative = cumulative;
+    cumulative += netCashFlow;
+    const paybackYear = !paybackMarked && previousCumulative < 0 && cumulative >= 0;
+    if (paybackYear) paybackMarked = true;
+
+    return {
+      year,
+      annualSavings,
+      opex: economics.annualOpex,
+      netCashFlow,
+      cumulativeCashFlow: cumulative,
+      soh,
+      paybackYear,
+    };
+  });
 }
 
 export function formatINR(n: number): string {

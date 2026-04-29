@@ -1,9 +1,19 @@
 import { useBess } from "@/store/bess-store";
 import { MetricCard } from "@/components/bess/MetricCard";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  computeCashFlows,
   computeEconomics,
   computeSizing,
   computeThermal,
@@ -11,7 +21,7 @@ import {
   formatNum,
   simulateDispatch,
 } from "@/lib/bess-calc";
-import { Download, ArrowDown, AlertTriangle } from "lucide-react";
+import { Download, ArrowDown, AlertTriangle, ChevronDown } from "lucide-react";
 import { generateReport } from "@/lib/pdf-report";
 
 export function EconomicsModule() {
@@ -33,6 +43,7 @@ export function EconomicsModule() {
 
   const simplePayback = isFinite(economics.paybackYears) ? economics.paybackYears : null;
   const npvIsNegative = economics.npv < 0;
+  const cashFlows = computeCashFlows(economics, thermalResult, 15);
   const sensitivityRows = [
     getSensitivityRow("Installed cost", "installedCost", 35000),
     getSensitivityRow("Live tariff", "tariff", 1),
@@ -198,6 +209,64 @@ export function EconomicsModule() {
           hint={`${formatNum(thermal.years)}y × ${thermal.dailyCycles}c/day`}
         />
       </div>
+
+      <Collapsible className="bg-panel border border-border p-6">
+        <CollapsibleTrigger className="group flex w-full items-center justify-between gap-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse-cyan">
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Year-by-Year Cash Flow
+            </h3>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Years 1–15 with annual savings, OPEX, net cash flow, cumulative cash flow, and SOH.
+            </p>
+          </div>
+          <ChevronDown className="size-4 text-pulse-cyan transition-transform group-data-[state=open]:rotate-180" />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-5">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Year</TableHead>
+                <TableHead className="text-right">Annual Savings</TableHead>
+                <TableHead className="text-right">OPEX</TableHead>
+                <TableHead className="text-right">Net Cash Flow</TableHead>
+                <TableHead className="text-right">Cumulative Cash Flow</TableHead>
+                <TableHead className="text-right">SOH%</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {cashFlows.map((row) => (
+                <TableRow
+                  key={row.year}
+                  className={
+                    row.paybackYear ? "bg-pulse-green/12 hover:bg-pulse-green/18" : undefined
+                  }
+                >
+                  <TableCell className="data-cell text-pulse-cyan">{row.year}</TableCell>
+                  <TableCell className="data-cell text-right">
+                    {formatINR(row.annualSavings)}
+                  </TableCell>
+                  <TableCell className="data-cell text-right text-pulse-amber">
+                    {formatINR(row.opex)}
+                  </TableCell>
+                  <TableCell className="data-cell text-right">
+                    {formatINR(row.netCashFlow)}
+                  </TableCell>
+                  <TableCell
+                    className={`data-cell text-right ${row.cumulativeCashFlow >= 0 ? "text-pulse-green" : "text-pulse-red"}`}
+                  >
+                    {formatINR(row.cumulativeCashFlow)}
+                  </TableCell>
+                  <TableCell className="data-cell text-right">{row.soh.toFixed(1)}%</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <p className="mt-3 text-[10px] text-muted-foreground">
+            Green row marks the first year cumulative cash flow turns positive.
+          </p>
+        </CollapsibleContent>
+      </Collapsible>
 
       {npvIsNegative && (
         <div className="border border-pulse-amber/60 bg-pulse-amber/10 p-5 glow-amber">
