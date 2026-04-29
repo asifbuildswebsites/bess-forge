@@ -1,7 +1,8 @@
 import { useBess } from "@/store/bess-store";
 import { MetricCard } from "@/components/bess/MetricCard";
 import {
-  LineChart,
+  Area,
+  ComposedChart,
   Line,
   XAxis,
   YAxis,
@@ -12,9 +13,56 @@ import {
 } from "recharts";
 import { AlertTriangle } from "lucide-react";
 
+type SohChartPoint = {
+  year: number;
+  soh: number;
+  sohBand: [number, number];
+  remainingCapacityKWh: number;
+};
+
+function SohTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: SohChartPoint }>;
+}) {
+  if (!active || !payload?.length) return null;
+
+  const point = payload[0].payload;
+  return (
+    <div className="border border-border bg-panel px-3 py-2 text-xs shadow-lg">
+      <div className="font-semibold text-pulse-cyan">Year {point.year}</div>
+      <div className="mt-1 grid gap-1 text-muted-foreground">
+        <div>
+          SOH: <span className="font-mono text-foreground">{point.soh.toFixed(2)}%</span>
+        </div>
+        <div>
+          Remaining capacity:{" "}
+          <span className="font-mono text-foreground">
+            {point.remainingCapacityKWh.toLocaleString("en-IN", { maximumFractionDigits: 1 })} kWh
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ThermalModule() {
   const { thermalResult, thermal, sizing } = useBess();
   const finalSoh = thermalResult.points[thermalResult.points.length - 1].soh;
+  const chartData: SohChartPoint[] = thermalResult.points.map((point) => {
+    const fade = 100 - point.soh;
+    const lowerSoh = Math.max(0, 100 - fade * 1.1);
+    const upperSoh = Math.min(100, 100 - fade * 0.9);
+
+    return {
+      year: point.year,
+      soh: point.soh,
+      sohBand: [lowerSoh, upperSoh],
+      remainingCapacityKWh: sizing.nameplateKWh * (point.soh / 100),
+    };
+  });
   return (
     <div className="space-y-8">
       <div>
@@ -72,33 +120,52 @@ export function ThermalModule() {
         </h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={thermalResult.points} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+            <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
               <CartesianGrid stroke="oklch(0.25 0.025 250)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="year"
                 stroke="oklch(0.55 0.02 250)"
                 tick={{ fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
-                label={{ value: "Year", position: "insideBottom", offset: -5, fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
+                label={{
+                  value: "Year",
+                  position: "insideBottom",
+                  offset: -5,
+                  fill: "oklch(0.55 0.02 250)",
+                  fontSize: 11,
+                }}
               />
               <YAxis
                 stroke="oklch(0.55 0.02 250)"
                 tick={{ fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
                 domain={[0, 100]}
-                label={{ value: "SOH (%)", angle: -90, position: "insideLeft", fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: "oklch(0.13 0.02 250)",
-                  border: "1px solid oklch(0.25 0.025 250)",
-                  fontSize: 12,
+                label={{
+                  value: "SOH (%)",
+                  angle: -90,
+                  position: "insideLeft",
+                  fill: "oklch(0.55 0.02 250)",
+                  fontSize: 11,
                 }}
-                labelStyle={{ color: "oklch(0.85 0.18 200)" }}
               />
+              <Tooltip content={<SohTooltip />} />
               <ReferenceLine
                 y={80}
                 stroke="oklch(0.85 0.18 90)"
                 strokeDasharray="4 4"
-                label={{ value: "EOL 80%", fill: "oklch(0.85 0.18 90)", fontSize: 10, position: "insideTopRight" }}
+                label={{
+                  value: "EOL 80%",
+                  fill: "oklch(0.85 0.18 90)",
+                  fontSize: 10,
+                  position: "insideTopRight",
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="sohBand"
+                stroke="none"
+                fill="oklch(0.85 0.18 200)"
+                fillOpacity={0.18}
+                activeDot={false}
+                isAnimationActive={false}
               />
               <Line
                 type="monotone"
@@ -108,7 +175,7 @@ export function ThermalModule() {
                 dot={{ fill: "oklch(0.85 0.18 200)", r: 3 }}
                 activeDot={{ r: 5 }}
               />
-            </LineChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </div>
