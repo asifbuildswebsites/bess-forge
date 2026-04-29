@@ -46,8 +46,8 @@ export const Route = createRootRoute({
       { name: "description", content: "BESS-Calc India is a web app for sizing, analyzing, and evaluating battery energy storage systems for Indian grids." },
       { property: "og:description", content: "BESS-Calc India is a web app for sizing, analyzing, and evaluating battery energy storage systems for Indian grids." },
       { name: "twitter:description", content: "BESS-Calc India is a web app for sizing, analyzing, and evaluating battery energy storage systems for Indian grids." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/98cc983e-0c9d-4d95-a1a5-c7c6eaba21ec/id-preview-ffbe631e--9ea462f7-2c69-4091-89c8-79f023bcef4b.lovable.app-1777448044991.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/98cc983e-0c9d-4d95-a1a5-c7c6eaba21ec/id-preview-ffbe631e--9ea462f7-2c69-4091-89c8-79f023bcef4b.lovable.app-1777448044991.png" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/0e2b2ddb-8547-4afa-8ae1-fcb4d315707b" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/0e2b2ddb-8547-4afa-8ae1-fcb4d315707b" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
