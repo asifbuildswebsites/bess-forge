@@ -2,19 +2,28 @@ import { useBess } from "@/store/bess-store";
 import { MetricCard } from "@/components/bess/MetricCard";
 import { formatNum } from "@/lib/bess-calc";
 import type { ReactNode } from "react";
+import { useState } from "react";
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 
 export function SizingModule() {
-  const { sizing, inputs, thermal } = useBess();
-  const visualSeriesSegments = 12;
-  const visualParallelRows = Math.min(Math.max(sizing.parallelStrings, 2), 6);
-  const cellsPerSeriesSegment = Math.ceil(sizing.cellsSeries / visualSeriesSegments);
-  const isThermalBorderline = thermal.ambientC >= 42 || sizing.cRate > 1;
-  const cellTone = isThermalBorderline
-    ? "bg-pulse-amber/18 border-pulse-amber/55 text-pulse-amber glow-amber"
-    : "bg-pulse-cyan/14 border-pulse-cyan/50 text-pulse-cyan glow-cyan";
+  const { sizing, inputs, setInputs, thermal } = useBess();
+  const [selectedCell, setSelectedCell] = useState<string | null>(null);
+  const rackSeriesCells = 250;
+  const rackParallelStrings = inputs.parallelStrings;
+  const isHot = thermal.ambientC >= 45 || sizing.cRate > 2;
+  const isWarm = !isHot && (thermal.ambientC >= 42 || sizing.cRate >= 1);
+  const cellTone = isHot
+    ? "border-pulse-red/60 bg-pulse-red/30 text-pulse-red"
+    : isWarm
+      ? "border-pulse-amber/60 bg-pulse-amber/25 text-pulse-amber"
+      : "border-pulse-cyan/55 bg-pulse-cyan/18 text-pulse-cyan";
+  const selectedCellTone = isHot
+    ? "ring-pulse-red bg-pulse-red/55"
+    : isWarm
+      ? "ring-pulse-amber bg-pulse-amber/50"
+      : "ring-pulse-cyan bg-pulse-cyan/45";
   const chemistryVoltage = inputs.chemistry === "LFP" ? 3.2 : inputs.chemistry === "NMC" ? 3.6 : 2.4;
-  const nominalStringVoltage = sizing.cellsSeries * chemistryVoltage;
+  const nominalStringVoltage = rackSeriesCells * chemistryVoltage;
   const capacityPerStringKWh = (nominalStringVoltage * inputs.cellCapacityAh) / 1000;
   const footprintScale = Math.max(0.28, Math.min(1, Math.sqrt(sizing.footprintM2 / 145)));
   const cRateStatus =
