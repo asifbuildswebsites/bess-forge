@@ -20,7 +20,13 @@ type SohChartPoint = {
   remainingCapacityKWh: number;
 };
 
-function SohTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: SohChartPoint }> }) {
+function SohTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: SohChartPoint }>;
+}) {
   if (!active || !payload?.length) return null;
 
   const point = payload[0].payload;
@@ -32,7 +38,7 @@ function SohTooltip({ active, payload }: { active?: boolean; payload?: Array<{ p
           SOH: <span className="font-mono text-foreground">{point.soh.toFixed(2)}%</span>
         </div>
         <div>
-          Remaining capacity: {" "}
+          Remaining capacity:{" "}
           <span className="font-mono text-foreground">
             {point.remainingCapacityKWh.toLocaleString("en-IN", { maximumFractionDigits: 1 })} kWh
           </span>
@@ -120,20 +126,37 @@ export function ThermalModule() {
                 dataKey="year"
                 stroke="oklch(0.55 0.02 250)"
                 tick={{ fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
-                label={{ value: "Year", position: "insideBottom", offset: -5, fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
+                label={{
+                  value: "Year",
+                  position: "insideBottom",
+                  offset: -5,
+                  fill: "oklch(0.55 0.02 250)",
+                  fontSize: 11,
+                }}
               />
               <YAxis
                 stroke="oklch(0.55 0.02 250)"
                 tick={{ fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
                 domain={[0, 100]}
-                label={{ value: "SOH (%)", angle: -90, position: "insideLeft", fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
+                label={{
+                  value: "SOH (%)",
+                  angle: -90,
+                  position: "insideLeft",
+                  fill: "oklch(0.55 0.02 250)",
+                  fontSize: 11,
+                }}
               />
               <Tooltip content={<SohTooltip />} />
               <ReferenceLine
                 y={80}
                 stroke="oklch(0.85 0.18 90)"
                 strokeDasharray="4 4"
-                label={{ value: "EOL 80%", fill: "oklch(0.85 0.18 90)", fontSize: 10, position: "insideTopRight" }}
+                label={{
+                  value: "EOL 80%",
+                  fill: "oklch(0.85 0.18 90)",
+                  fontSize: 10,
+                  position: "insideTopRight",
+                }}
               />
               <Area
                 type="monotone"
