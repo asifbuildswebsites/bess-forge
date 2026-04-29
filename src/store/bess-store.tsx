@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, ReactNode } from "react";
 import {
   computeSizing,
   computeThermal,
@@ -59,12 +59,18 @@ export function BessProvider({ children }: { children: ReactNode }) {
     demandRatePerKVA: 400,
   });
 
-  const setInputs = (p: Partial<SizingInputs>) =>
-    setInputsState((s) => ({ ...s, ...p }));
-  const setThermal = (p: Partial<ThermalUiInputs>) =>
-    setThermalState((s) => ({ ...s, ...p }));
-  const setRevenue = (p: Partial<RevenueStreams>) =>
-    setRevenueState((s) => ({ ...s, ...p }));
+  const setInputs = useCallback(
+    (p: Partial<SizingInputs>) => setInputsState((s) => ({ ...s, ...p })),
+    [],
+  );
+  const setThermal = useCallback(
+    (p: Partial<ThermalUiInputs>) => setThermalState((s) => ({ ...s, ...p })),
+    [],
+  );
+  const setRevenue = useCallback(
+    (p: Partial<RevenueStreams>) => setRevenueState((s) => ({ ...s, ...p })),
+    [],
+  );
 
   const computeFor = useMemo(() => {
     return (chem: Chemistry) => {
