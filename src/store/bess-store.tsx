@@ -39,14 +39,16 @@ const Ctx = createContext<BessState | null>(null);
 export function BessProvider({ children }: { children: ReactNode }) {
   const [inputs, setInputsState] = useState<SizingInputs>({
     peakLoadKW: 1000,
+    desiredEnergyMWh: 4,
     autonomyHours: 4,
     solarKWp: 500,
     chemistry: "LFP",
+    cellCapacityAh: 280,
     dodPct: 90,
     rteEffPct: 92,
   });
   const [thermal, setThermalState] = useState<ThermalUiInputs>({
-    ambientC: 40,
+    ambientC: 35,
     dailyCycles: 1.2,
     years: 15,
   });
