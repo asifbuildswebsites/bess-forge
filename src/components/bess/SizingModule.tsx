@@ -13,7 +13,6 @@ export function SizingModule() {
   const cellTone = isThermalBorderline
     ? "bg-pulse-amber/18 border-pulse-amber/55 text-pulse-amber glow-amber"
     : "bg-pulse-cyan/14 border-pulse-cyan/50 text-pulse-cyan glow-cyan";
-  const nominalVoltage = sizing.cellsSeries * 3.2;
   const chemistryVoltage = inputs.chemistry === "LFP" ? 3.2 : inputs.chemistry === "NMC" ? 3.6 : 2.4;
   const nominalStringVoltage = sizing.cellsSeries * chemistryVoltage;
   const capacityPerStringKWh = (nominalStringVoltage * inputs.cellCapacityAh) / 1000;
