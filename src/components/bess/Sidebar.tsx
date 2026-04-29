@@ -40,7 +40,7 @@ function SliderRow({
   );
 }
 
-export function Sidebar() {
+function SidebarControls() {
   const { inputs, setInputs, thermal, setThermal, economics } = useBess();
   const [liveTariff, setLiveTariff] = useState(() => tariffAtHour(new Date().getHours()));
   useEffect(() => {
@@ -52,7 +52,7 @@ export function Sidebar() {
   }, []);
 
   return (
-    <aside className="w-80 shrink-0 border-r border-border bg-panel flex flex-col h-screen sticky top-0">
+    <>
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="size-9 bg-pulse-cyan glow-cyan rounded-sm flex items-center justify-center text-void font-bold">
@@ -206,6 +206,18 @@ export function Sidebar() {
           </span>
         </div>
       </div>
+    </>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <aside className="hidden w-80 shrink-0 border-r border-border bg-panel md:flex flex-col h-screen sticky top-0">
+      <SidebarControls />
     </aside>
   );
+}
+
+export function MobileSettingsPanel() {
+  return <SidebarControls />;
 }
