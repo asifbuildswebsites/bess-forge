@@ -104,7 +104,8 @@ export function SizingModule() {
             </div>
             {sizing.parallelStrings > visualParallelRows && (
               <div className="mt-2 text-center data-cell text-[10px] text-muted-foreground">
-                + {formatNum(sizing.parallelStrings - visualParallelRows)} additional parallel strings
+                + {formatNum(sizing.parallelStrings - visualParallelRows)} additional parallel
+                strings
               </div>
             )}
             <div className="mt-5 grid gap-3 md:grid-cols-[1fr_0.8fr]">
@@ -114,7 +115,10 @@ export function SizingModule() {
                   label="Voltage"
                   value={`${formatNum(sizing.cellsSeries)} × 3.2V = ${formatNum(nominalVoltage, 0)}V`}
                 />
-                <LegendItem label="Capacity / string" value={`${formatNum(capacityPerStringKWh, 0)} kWh`} />
+                <LegendItem
+                  label="Capacity / string"
+                  value={`${formatNum(capacityPerStringKWh, 0)} kWh`}
+                />
               </div>
               <div className="rounded-sm border border-border bg-background/35 p-3">
                 <div className="mb-2 flex items-center justify-between gap-2 text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -124,7 +128,10 @@ export function SizingModule() {
                 <div className="flex h-16 items-end justify-center rounded-xs border border-dashed border-muted-foreground/35 p-2">
                   <div
                     className="rounded-xs border border-fiber-violet bg-fiber-violet/25"
-                    style={{ width: `${footprintScale * 100}%`, height: `${footprintScale * 100}%` }}
+                    style={{
+                      width: `${footprintScale * 100}%`,
+                      height: `${footprintScale * 100}%`,
+                    }}
                     title={`${formatNum(sizing.footprintM2, 0)} m² footprint estimate`}
                   />
                 </div>
@@ -135,7 +142,8 @@ export function SizingModule() {
             </div>
           </div>
           <p className="text-[10px] text-muted-foreground mt-4 data-cell">
-            Visual: representative rack layout; {isThermalBorderline ? "amber" : "teal"} blocks indicate thermal status.
+            Visual: representative rack layout; {isThermalBorderline ? "amber" : "teal"} blocks
+            indicate thermal status.
           </p>
         </div>
 
@@ -188,15 +196,7 @@ function LegendItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-function LogLine({
-  ts,
-  color,
-  children,
-}: {
-  ts: string;
-  color: string;
-  children: ReactNode;
-}) {
+function LogLine({ ts, color, children }: { ts: string; color: string; children: ReactNode }) {
   return (
     <div className="flex gap-2 text-[11px] data-cell leading-tight">
       <span className="text-muted-foreground/60">[{ts}]</span>
