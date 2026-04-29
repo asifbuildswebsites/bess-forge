@@ -4,18 +4,49 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { formatINR, formatNum } from "@/lib/bess-calc";
-import { Download, ArrowDown } from "lucide-react";
+import { Download, ArrowDown, AlertTriangle } from "lucide-react";
 import { generateReport } from "@/lib/pdf-report";
 
 export function EconomicsModule() {
-  const { economics, inputs, sizing, thermal, thermalResult, dispatch, revenue, setRevenue } =
-    useBess();
+  const {
+    economics,
+    inputs,
+    sizing,
+    thermal,
+    thermalResult,
+    dispatch,
+    revenue,
+    setRevenue,
+    setInputs,
+  } = useBess();
 
   const handleExport = () => {
     generateReport({ inputs, sizing, thermal, thermalResult, dispatch, economics });
   };
 
   const simplePayback = isFinite(economics.paybackYears) ? economics.paybackYears : null;
+  const npvIsNegative = economics.npv < 0;
+  const viabilityActions = [
+    {
+      label: "Enable Demand Charge Reduction",
+      detail: revenue.demandCharge ? "Enabled" : "Adds contracted-demand savings",
+      onClick: () =>
+        setRevenue({
+          demandCharge: true,
+          contractedKVA: Math.max(revenue.contractedKVA, inputs.peakLoadKW),
+        }),
+    },
+    {
+      label: "Reduce autonomy hours",
+      detail: `${inputs.autonomyHours}h → ${Math.max(0.5, inputs.autonomyHours - 0.5)}h`,
+      onClick: () => setInputs({ autonomyHours: Math.max(0.5, inputs.autonomyHours - 0.5) }),
+    },
+    {
+      label: "Add Solar PV offset",
+      detail: `${formatNum(inputs.solarKWp)} → ${formatNum(Math.min(5000, inputs.solarKWp + 500))} kWp`,
+      onClick: () => setInputs({ solarKWp: Math.min(5000, inputs.solarKWp + 500) }),
+    },
+  ];
 
   return (
     <div className="space-y-8">
@@ -26,16 +57,32 @@ export function EconomicsModule() {
             CAPEX, payback, NPV (10% disc, 15y), and LCOES at ₹35,000/kWh installed cost.
           </p>
         </div>
-        <Button onClick={handleExport} className="bg-pulse-cyan text-void hover:bg-pulse-cyan/90 glow-cyan font-bold">
+        <Button
+          onClick={handleExport}
+          className="bg-pulse-cyan text-void hover:bg-pulse-cyan/90 glow-cyan font-bold"
+        >
           <Download className="size-4 mr-2" />
           Download Report (PDF)
         </Button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <MetricCard label="CAPEX" value={formatINR(economics.capex)} variant="cyan" hint="₹35,000/kWh × nameplate" />
-        <MetricCard label="Annual OPEX" value={formatINR(economics.annualOpex)} hint="1.5% of CAPEX" />
-        <MetricCard label="Annual Savings" value={formatINR(economics.annualSavings)} variant="green" />
+        <MetricCard
+          label="CAPEX"
+          value={formatINR(economics.capex)}
+          variant="cyan"
+          hint="₹35,000/kWh × nameplate"
+        />
+        <MetricCard
+          label="Annual OPEX"
+          value={formatINR(economics.annualOpex)}
+          hint="1.5% of CAPEX"
+        />
+        <MetricCard
+          label="Annual Savings"
+          value={formatINR(economics.annualSavings)}
+          variant="green"
+        />
         <MetricCard
           label="Simple Payback"
           value={
@@ -63,7 +110,11 @@ export function EconomicsModule() {
           label={`NPV @ 10% (${thermal.years}y)`}
           value={formatINR(economics.npv)}
           variant={economics.npv > 0 ? "green" : "red"}
-          hint={economics.replacementYear ? `incl. cell replace yr ${economics.replacementYear}` : "no replacement"}
+          hint={
+            economics.replacementYear
+              ? `incl. cell replace yr ${economics.replacementYear}`
+              : "no replacement"
+          }
         />
         <MetricCard
           label="LCOES"
@@ -74,11 +125,48 @@ export function EconomicsModule() {
         />
       </div>
 
+      {npvIsNegative && (
+        <div className="border border-pulse-amber/60 bg-pulse-amber/10 p-5 glow-amber">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 size-5 shrink-0 text-pulse-amber" />
+              <div>
+                <div className="data-cell text-xs font-bold uppercase tracking-widest text-pulse-amber">
+                  Negative NPV detected
+                </div>
+                <div className="mt-1 text-sm font-semibold text-foreground">
+                  3 levers to improve viability →
+                </div>
+              </div>
+            </div>
+            <div className="grid flex-1 gap-2 md:grid-cols-3 lg:max-w-3xl">
+              {viabilityActions.map((action, index) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  onClick={action.onClick}
+                  className="group border border-pulse-amber/35 bg-background/40 p-3 text-left transition-all hover:-translate-y-0.5 hover:border-pulse-amber hover:bg-pulse-amber/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse-amber"
+                >
+                  <span className="data-cell text-[10px] text-pulse-amber">({index + 1})</span>
+                  <span className="ml-2 text-xs font-semibold text-foreground group-hover:text-pulse-amber">
+                    {action.label}
+                  </span>
+                  <span className="mt-1 block text-[10px] text-muted-foreground">
+                    {action.detail}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {simplePayback === null && !revenue.demandCharge && (
         <div className="flex items-center gap-3 px-4 py-3 border border-pulse-cyan/40 bg-pulse-cyan/5 text-xs">
           <ArrowDown className="size-4 text-pulse-cyan animate-bounce shrink-0" />
           <span className="text-foreground/90">
-            Enable <span className="data-cell text-pulse-cyan">Demand Charge Reduction</span> below to model a viable business case.
+            Enable <span className="data-cell text-pulse-cyan">Demand Charge Reduction</span> below
+            to model a viable business case.
           </span>
         </div>
       )}
@@ -91,9 +179,12 @@ export function EconomicsModule() {
               Battery Replacement Event Modelled
             </div>
             <div className="text-foreground/80 mt-1">
-              SOH crosses 80% in <span className="data-cell text-pulse-amber">year {economics.replacementYear}</span>.
+              SOH crosses 80% in{" "}
+              <span className="data-cell text-pulse-amber">year {economics.replacementYear}</span>.
               NPV includes a cell-only swap of{" "}
-              <span className="data-cell text-pulse-amber">{formatINR(economics.replacementCost)}</span>{" "}
+              <span className="data-cell text-pulse-amber">
+                {formatINR(economics.replacementCost)}
+              </span>{" "}
               (60% of CAPEX — re-uses BMS / PCS / container / civils).
             </div>
           </div>
@@ -193,10 +284,10 @@ export function EconomicsModule() {
             </li>
             <li>
               <span className="text-pulse-amber data-cell">› NPV scope</span> — captures{" "}
-              <span className="text-foreground">ToD energy arbitrage only</span>. Demand /
-              capacity charges (kVA), DSM penalties, ancillary-services revenue and RE-firming
-              incentives are <span className="text-foreground">not</span> modelled — real-world
-              NPV is typically higher.
+              <span className="text-foreground">ToD energy arbitrage only</span>. Demand / capacity
+              charges (kVA), DSM penalties, ancillary-services revenue and RE-firming incentives are{" "}
+              <span className="text-foreground">not</span> modelled — real-world NPV is typically
+              higher.
             </li>
             <li>
               <span className="text-pulse-cyan data-cell">› LCOES</span> — CAPEX divided by lifetime
