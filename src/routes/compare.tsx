@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BessLayout } from "@/components/bess/BessLayout";
-import { SizingModule } from "@/components/bess/SizingModule";
+import { CompareModule } from "@/components/bess/CompareModule";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/compare")({
   component: () => (
     <BessLayout>
-      <SizingModule />
+      <CompareModule />
     </BessLayout>
   ),
 });
