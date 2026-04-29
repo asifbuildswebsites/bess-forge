@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useBess } from "@/store/bess-store";
 import { MetricCard } from "@/components/bess/MetricCard";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -24,6 +26,12 @@ import {
 import { Download, ArrowDown, AlertTriangle, ChevronDown } from "lucide-react";
 import { generateReport } from "@/lib/pdf-report";
 
+const getDefaultReportDate = () => {
+  const today = new Date();
+  const offset = today.getTimezoneOffset() * 60_000;
+  return new Date(today.getTime() - offset).toISOString().slice(0, 10);
+};
+
 export function EconomicsModule() {
   const {
     economics,
@@ -36,9 +44,14 @@ export function EconomicsModule() {
     setRevenue,
     setInputs,
   } = useBess();
+  const [reportMeta, setReportMeta] = useState(() => ({
+    projectName: "Battery Energy Storage Project",
+    clientName: "Client Name",
+    reportDate: getDefaultReportDate(),
+  }));
 
   const handleExport = () => {
-    generateReport({ inputs, sizing, thermal, thermalResult, dispatch, economics });
+    generateReport({ inputs, sizing, thermal, thermalResult, dispatch, economics, reportMeta });
   };
 
   const simplePayback = isFinite(economics.paybackYears) ? economics.paybackYears : null;
@@ -150,6 +163,50 @@ export function EconomicsModule() {
           Download Report (PDF)
         </Button>
       </div>
+
+      <section className="border border-border bg-panel p-5">
+        <div className="mb-4">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Project Report Cover
+          </h3>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            These fields appear on the PDF cover page.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <label className="space-y-2 text-xs text-muted-foreground">
+            Project name
+            <Input
+              value={reportMeta.projectName}
+              onChange={(event) =>
+                setReportMeta((current) => ({ ...current, projectName: event.target.value }))
+              }
+              className="border-border bg-void text-foreground"
+            />
+          </label>
+          <label className="space-y-2 text-xs text-muted-foreground">
+            Client name
+            <Input
+              value={reportMeta.clientName}
+              onChange={(event) =>
+                setReportMeta((current) => ({ ...current, clientName: event.target.value }))
+              }
+              className="border-border bg-void text-foreground"
+            />
+          </label>
+          <label className="space-y-2 text-xs text-muted-foreground">
+            Date
+            <Input
+              type="date"
+              value={reportMeta.reportDate}
+              onChange={(event) =>
+                setReportMeta((current) => ({ ...current, reportDate: event.target.value }))
+              }
+              className="border-border bg-void text-foreground"
+            />
+          </label>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <MetricCard

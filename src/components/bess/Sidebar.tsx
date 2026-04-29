@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
 import { useBess } from "@/store/bess-store";
 import { Slider } from "@/components/ui/slider";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Chemistry, tariffAtHour } from "@/lib/bess-calc";
 
 function SliderRow({
@@ -129,19 +122,29 @@ function SidebarControls() {
           <h3 className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase">
             Cell Chemistry
           </h3>
-          <Select
-            value={inputs.chemistry}
-            onValueChange={(v) => setInputs({ chemistry: v as Chemistry })}
-          >
-            <SelectTrigger className="bg-void border-border data-cell text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-panel border-border">
-              <SelectItem value="LFP">LFP — Lithium Iron Phosphate</SelectItem>
-              <SelectItem value="NMC">NMC — Nickel Manganese Cobalt</SelectItem>
-              <SelectItem value="NCA">NCA — Nickel Cobalt Aluminium</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="grid gap-2" role="radiogroup" aria-label="Cell chemistry">
+            {[
+              ["LFP", "Lithium Iron Phosphate"],
+              ["NMC", "Nickel Manganese Cobalt"],
+              ["NCA", "Nickel Cobalt Aluminium"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={inputs.chemistry === value}
+                onClick={() => setInputs({ chemistry: value as Chemistry })}
+                className={`flex items-center justify-between border px-3 py-2 text-left text-xs transition-colors ${
+                  inputs.chemistry === value
+                    ? "border-pulse-cyan bg-pulse-cyan/10 text-pulse-cyan"
+                    : "border-border bg-void text-foreground hover:border-pulse-cyan/60"
+                }`}
+              >
+                <span className="data-cell">{value}</span>
+                <span className="text-muted-foreground">{label}</span>
+              </button>
+            ))}
+          </div>
         </section>
 
         <section className="space-y-5 pt-2 border-t border-border">
