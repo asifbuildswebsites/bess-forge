@@ -44,6 +44,7 @@ export function BessProvider({ children }: { children: ReactNode }) {
     solarKWp: 500,
     chemistry: "LFP",
     cellCapacityAh: 280,
+    parallelStrings: 22,
     dodPct: 90,
     rteEffPct: 92,
   });
