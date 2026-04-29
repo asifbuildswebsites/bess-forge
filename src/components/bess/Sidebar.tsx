@@ -161,8 +161,12 @@ function SidebarControls() {
             unit="hrs"
             value={inputs.autonomyHours}
             onChange={(v) => {
+              const powerMW = inputs.peakLoadKW / 1000;
               setDurationOverridden(true);
-              setInputs({ autonomyHours: v });
+              setInputs({
+                autonomyHours: v,
+                desiredEnergyMWh: clamp(Number((powerMW * v).toFixed(2)), 0.5, 20),
+              });
             }}
             min={0.05}
             max={200}
