@@ -17,6 +17,7 @@ import {
 import {
   computeCashFlows,
   computeEconomics,
+  computeIrr,
   computeSizing,
   computeThermal,
   formatINR,
@@ -57,6 +58,7 @@ export function EconomicsModule() {
   const simplePayback = isFinite(economics.paybackYears) ? economics.paybackYears : null;
   const npvIsNegative = economics.npv < 0;
   const cashFlows = computeCashFlows(economics, thermalResult, 15);
+  const irr = computeIrr([-economics.capex, ...cashFlows.map((row) => row.netCashFlow)]);
   const sensitivityRows = [
     getSensitivityRow("Installed cost", "installedCost", 35000),
     getSensitivityRow("Live tariff", "tariff", 1),
@@ -208,7 +210,7 @@ export function EconomicsModule() {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="CAPEX"
           value={formatINR(economics.capex)}
@@ -257,6 +259,12 @@ export function EconomicsModule() {
               ? `incl. cell replace yr ${economics.replacementYear}`
               : "no replacement"
           }
+        />
+        <MetricCard
+          label="IRR"
+          value={irr === null ? "N/A" : `${(irr * 100).toFixed(1)}%`}
+          variant={irr !== null && irr > 0.1 ? "green" : irr !== null && irr > 0 ? "amber" : "red"}
+          hint="Improves with demand charge reduction enabled"
         />
         <MetricCard
           label="LCOES"

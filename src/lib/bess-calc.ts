@@ -284,6 +284,36 @@ export interface CashFlowRow {
   paybackYear: boolean;
 }
 
+export function computeIrr(cashFlows: number[], guess = 0.1): number | null {
+  if (cashFlows.length < 2 || !cashFlows.some((v) => v < 0) || !cashFlows.some((v) => v > 0)) {
+    return null;
+  }
+
+  let rate = guess;
+  for (let iteration = 0; iteration < 50; iteration++) {
+    let npv = 0;
+    let derivative = 0;
+
+    for (let year = 0; year < cashFlows.length; year++) {
+      const discount = Math.pow(1 + rate, year);
+      npv += cashFlows[year] / discount;
+      if (year > 0) {
+        derivative -= (year * cashFlows[year]) / Math.pow(1 + rate, year + 1);
+      }
+    }
+
+    if (Math.abs(npv) < 1) return rate;
+    if (Math.abs(derivative) < 1e-9) return null;
+
+    const nextRate = rate - npv / derivative;
+    if (!isFinite(nextRate) || nextRate <= -0.99 || nextRate > 10) return null;
+    if (Math.abs(nextRate - rate) < 1e-7) return nextRate;
+    rate = nextRate;
+  }
+
+  return null;
+}
+
 const CAPEX_PER_KWH = 35000; // ₹ — 2025 Indian utility-scale BESS
 // Cell-only replacement is ~60% of original CAPEX (re-use BMS, PCS, container, civils)
 const REPLACEMENT_FRACTION = 0.6;
