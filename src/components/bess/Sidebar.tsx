@@ -41,7 +41,7 @@ function SliderRow({
 
 function SidebarControls() {
   const { inputs, setInputs, thermal, setThermal, economics } = useBess();
-  const [liveTariff, setLiveTariff] = useState(() => tariffAtHour(new Date().getHours()));
+  const [liveTariff, setLiveTariff] = useState(() => tariffAtHour(0));
   useEffect(() => {
     setLiveTariff(tariffAtHour(new Date().getHours()));
     const id = setInterval(() => {
