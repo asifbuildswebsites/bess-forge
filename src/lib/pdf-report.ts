@@ -18,11 +18,90 @@ interface ReportData {
   thermalResult: ReturnType<typeof computeThermal>;
   dispatch: ReturnType<typeof simulateDispatch>;
   economics: ReturnType<typeof computeEconomics>;
+  reportMeta?: {
+    projectName: string;
+    clientName: string;
+    reportDate: string;
+  };
 }
 
 export function generateReport(d: ReportData) {
   const doc = new jsPDF();
   const w = doc.internal.pageSize.getWidth();
+  const h = doc.internal.pageSize.getHeight();
+  const meta = {
+    projectName: d.reportMeta?.projectName?.trim() || "Battery Energy Storage Project",
+    clientName: d.reportMeta?.clientName?.trim() || "Client",
+    reportDate:
+      d.reportMeta?.reportDate ||
+      new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
+  };
+  const finalSoh = d.thermalResult.points[d.thermalResult.points.length - 1].soh;
+  const summary = `BESS-CALC India evaluated a ${formatNum(d.sizing.nameplateKWh / 1000, 2)} MWh ${d.inputs.chemistry} battery energy storage system for a ${formatNum(d.inputs.peakLoadKW)} kW peak-load application requiring ${d.inputs.autonomyHours} hours of autonomy. The configuration provides ${formatNum(d.sizing.usableKWh)} kWh usable capacity at ${d.inputs.dodPct}% DOD and ${d.inputs.rteEffPct}% round-trip efficiency, with estimated annual savings of ${formatINR(d.economics.annualSavings)} and ${formatINR(d.economics.npv)} NPV over ${d.thermal.years} years. Thermal modelling at ${d.thermal.ambientC} °C projects ${finalSoh.toFixed(1)}% SOH at end of study, supporting consulting-level screening of sizing, operational risk, and project viability.`;
+
+  doc.setFillColor(248, 250, 252);
+  doc.rect(0, 0, w, h, "F");
+  doc.setFillColor(15, 23, 42);
+  doc.rect(0, 0, w, 38, "F");
+  doc.setFillColor(0, 216, 230);
+  doc.rect(14, 11, 16, 16, "F");
+  doc.setTextColor(15, 23, 42);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.text("B", 22, 22, { align: "center" });
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.text("BESS-CALC INDIA", 36, 18);
+  doc.setTextColor(170, 190, 205);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text("GRID-IN / PROJECT REPORT", 36, 25);
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(28);
+  doc.text(meta.projectName, 14, 64, { maxWidth: w - 28 });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(71, 85, 105);
+  doc.text(`Prepared for ${meta.clientName}`, 14, 78);
+  doc.text(`Report date: ${meta.reportDate}`, 14, 86);
+
+  doc.setDrawColor(203, 213, 225);
+  doc.line(14, 98, w - 14, 98);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(71, 85, 105);
+  doc.text("SYSTEM SUMMARY", 14, 110);
+  autoTable(doc, {
+    startY: 116,
+    theme: "plain",
+    margin: { left: 14, right: 14 },
+    styles: { fontSize: 10, cellPadding: 3, textColor: [15, 23, 42] },
+    columnStyles: { 0: { textColor: [100, 116, 139] }, 1: { fontStyle: "bold" } },
+    body: [
+      ["Nameplate", `${formatNum(d.sizing.nameplateKWh / 1000, 2)} MWh`],
+      ["Chemistry", d.inputs.chemistry],
+      ["Peak load", `${formatNum(d.inputs.peakLoadKW)} kW`],
+      ["Autonomy", `${d.inputs.autonomyHours} hours`],
+    ],
+  });
+  const summaryY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 14;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(71, 85, 105);
+  doc.text("EXECUTIVE SUMMARY", 14, summaryY);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(30, 41, 59);
+  doc.text(doc.splitTextToSize(summary, w - 28), 14, summaryY + 10);
+  doc.setFillColor(226, 232, 240);
+  doc.rect(14, h - 38, w - 28, 1, "F");
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text("Prepared as a consulting-style screening deliverable. Validate assumptions before investment approval.", 14, h - 24);
+
+  doc.addPage();
 
   // Header band
   doc.setFillColor(20, 22, 32);
