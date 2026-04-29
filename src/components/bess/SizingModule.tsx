@@ -92,44 +92,64 @@ export function SizingModule() {
             <Stat label="Total Cells" value={formatNum(sizing.totalCells)} sub="approximate" />
           </div>
 
-          <div className="mt-8 overflow-x-auto rounded-md border border-border bg-void/40 p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="mt-8 rounded-md border border-border bg-void/40 p-4">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Rack Diagram
+                Cells in Series: 250 @ 800V bus
               </div>
-              <div className="data-cell text-[10px] text-muted-foreground">
-                {sizing.cellsSeries}s × {sizing.parallelStrings}p
+              <div className="data-cell text-[10px] text-pulse-cyan">
+                Total Cells: {rackSeriesCells} × {rackParallelStrings} = {formatNum(rackSeriesCells * rackParallelStrings)}
               </div>
             </div>
+            <div className="mb-4 space-y-2">
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <label htmlFor="parallel-string-slider" className="text-foreground/80">
+                  Parallel strings
+                </label>
+                <span className="data-cell text-pulse-cyan">{rackParallelStrings}</span>
+              </div>
+              <input
+                id="parallel-string-slider"
+                type="range"
+                min={1}
+                max={50}
+                step={1}
+                value={rackParallelStrings}
+                onChange={(event) => setInputs({ parallelStrings: Number(event.target.value) })}
+                className="w-full accent-pulse-cyan"
+              />
+            </div>
             <div
-              className="grid min-w-[560px] gap-1.5 md:min-w-0"
-              style={{ gridTemplateColumns: `repeat(${visualSeriesSegments}, minmax(0, 1fr))` }}
+              className="grid max-h-[520px] overflow-auto rounded-sm border border-border bg-background/35 p-3 transition-all duration-300 chart-pan-zoom"
+              style={{ gridTemplateColumns: `repeat(${rackParallelStrings}, minmax(20px, 50px))`, gap: "0.25rem" }}
             >
-              {Array.from({ length: visualParallelRows * visualSeriesSegments }).map((_, i) => {
-                const row = Math.floor(i / visualSeriesSegments) + 1;
-                const col = (i % visualSeriesSegments) + 1;
-                const sStart = (col - 1) * cellsPerSeriesSegment + 1;
-                const sEnd = Math.min(col * cellsPerSeriesSegment, sizing.cellsSeries);
+              {Array.from({ length: rackSeriesCells * rackParallelStrings }).map((_, i) => {
+                const series = Math.floor(i / rackParallelStrings) + 1;
+                const parallel = (i % rackParallelStrings) + 1;
+                const id = `S${series} × P${parallel}`;
+                const isSelected = selectedCell === id;
                 return (
-                  <div
-                    key={`${row}-${col}`}
-                    className={`flex min-h-11 items-center justify-center rounded-sm border px-1 text-center transition-transform hover:-translate-y-0.5 ${cellTone}`}
-                    title={`Series cells ${sStart}-${sEnd}, parallel string ${row}`}
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setSelectedCell(id)}
+                    className={`aspect-square max-h-[50px] max-w-[50px] min-w-5 border text-[0px] transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 focus:outline-none focus:ring-1 ${cellTone} ${
+                      isSelected ? `ring-1 ${selectedCellTone}` : ""
+                    }`}
+                    title={`${id} — ${isHot ? "Hot" : isWarm ? "Warm" : "Normal"}`}
+                    aria-label={`${id} ${isHot ? "hot" : isWarm ? "warm" : "normal"}`}
                   >
-                    <span className="data-cell text-[9px] leading-tight">
-                      S{sStart}-{sEnd}
-                      <br />× P{row}
-                    </span>
-                  </div>
+                    {id}
+                  </button>
                 );
               })}
             </div>
-            {sizing.parallelStrings > visualParallelRows && (
-              <div className="mt-2 text-center data-cell text-[10px] text-muted-foreground">
-                + {formatNum(sizing.parallelStrings - visualParallelRows)} additional parallel
-                strings
-              </div>
-            )}
+            <div className="mt-3 flex flex-wrap items-center gap-3 data-cell text-[10px] text-muted-foreground">
+              <StatusDot className="bg-pulse-cyan" label="Normal" />
+              <StatusDot className="bg-pulse-amber" label="Warm" />
+              <StatusDot className="bg-pulse-red" label="Hot" />
+              {selectedCell && <span className="text-foreground">Selected: {selectedCell}</span>}
+            </div>
             <div className="mt-5 grid gap-3 md:grid-cols-[1fr_0.8fr]">
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <LegendItem label="Total cells" value={formatNum(sizing.totalCells)} />
@@ -161,8 +181,7 @@ export function SizingModule() {
             </div>
           </div>
           <p className="text-[10px] text-muted-foreground mt-4 data-cell">
-            Visual: representative rack layout; {isThermalBorderline ? "amber" : "teal"} blocks
-            indicate thermal status.
+            Visual: one representative rack; slider controls parallel string columns.
           </p>
         </div>
 
