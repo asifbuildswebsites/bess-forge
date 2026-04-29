@@ -152,8 +152,8 @@ export function SizingModule() {
             </div>
             <div className="mt-5 grid gap-3 md:grid-cols-[1fr_0.8fr]">
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <LegendItem label="Total cells" value={formatNum(sizing.totalCells)} />
-                <LegendItem label="Voltage" value={`${formatNum(sizing.cellsSeries)} × ${chemistryVoltage}V = ${formatNum(nominalStringVoltage, 0)}V`} />
+                <LegendItem label="Total cells" value={`${rackSeriesCells} × ${rackParallelStrings} = ${formatNum(rackSeriesCells * rackParallelStrings)}`} />
+                <LegendItem label="Voltage" value={`${rackSeriesCells} × ${chemistryVoltage}V = ${formatNum(nominalStringVoltage, 0)}V`} />
                 <LegendItem
                   label="Capacity / string"
                   value={`${formatNum(capacityPerStringKWh, 0)} kWh`}
@@ -196,7 +196,7 @@ export function SizingModule() {
             Applied DOD {inputs.dodPct}% & RTE {inputs.rteEffPct}%
           </LogLine>
           <LogLine ts="00:00:03" color="text-foreground">
-            Selected {inputs.chemistry} cells, {sizing.cellsSeries}s × {sizing.parallelStrings}p
+            Selected {inputs.chemistry} cells, {rackSeriesCells}s × {rackParallelStrings}p
           </LogLine>
           <LogLine ts="00:00:04" color={sizing.cRate > 1 ? "text-pulse-amber" : "text-pulse-green"}>
             C-rate {sizing.cRate.toFixed(2)} —{" "}
