@@ -9,8 +9,8 @@ export interface SizingInputs {
   solarKWp: number;
   chemistry: Chemistry;
   cellCapacityAh: number;
-  dodPct: number; // 70-95
-  rteEffPct: number; // 85-98
+  dodPct: number; // 50-100
+  rteEffPct: number; // 80-95
 }
 
 export interface ThermalInputs {
@@ -91,13 +91,13 @@ const Z_EXPONENT = 0.55; // Wang et al. — sub-linear Ah dependence
 const B_CHEM: Record<Chemistry, number> = {
   LFP: 1.215e-3,
   NMC: 1.85e-3,
-  NCA: 2.15e-3,
+  LTO: 0.82e-3,
 };
 // Calendar fade % per year at 25°C reference (doubles every ~10°C — Arrhenius)
 const CAL_FADE_PER_YEAR_25C: Record<Chemistry, number> = {
   LFP: 0.15,
   NMC: 0.25,
-  NCA: 0.3,
+  LTO: 0.1,
 };
 
 export interface ThermalPoint {
