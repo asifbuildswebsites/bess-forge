@@ -135,14 +135,6 @@ export function ThermalModule() {
                 strokeDasharray="4 4"
                 label={{ value: "EOL 80%", fill: "oklch(0.85 0.18 90)", fontSize: 10, position: "insideTopRight" }}
               />
-              <Line
-                type="monotone"
-                dataKey="soh"
-                stroke="oklch(0.85 0.18 200)"
-                strokeWidth={2.5}
-                dot={{ fill: "oklch(0.85 0.18 200)", r: 3 }}
-                activeDot={{ r: 5 }}
-              />
               <Area
                 type="monotone"
                 dataKey="sohBand"
@@ -151,6 +143,14 @@ export function ThermalModule() {
                 fillOpacity={0.18}
                 activeDot={false}
                 isAnimationActive={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="soh"
+                stroke="oklch(0.85 0.18 200)"
+                strokeWidth={2.5}
+                dot={{ fill: "oklch(0.85 0.18 200)", r: 3 }}
+                activeDot={{ r: 5 }}
               />
             </ComposedChart>
           </ResponsiveContainer>
