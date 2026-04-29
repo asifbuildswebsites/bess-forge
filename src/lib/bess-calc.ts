@@ -28,25 +28,8 @@ const CELL_VOLTAGE: Record<Chemistry, number> = {
   LTO: 2.4,
 };
 
-const ENERGY_DENSITY_WH_PER_L: Record<Chemistry, number> = {
-  LFP: 250,
-  NMC: 320,
-  LTO: 190,
-};
-
 // Pack: assume 800V DC bus typical for utility BESS
 const PACK_NOMINAL_VOLTAGE = 800;
-// Cell capacity assumption (Ah) — typical prismatic
-const CELL_AH = 280;
-
-// Containerized footprint scales inversely with cell energy density.
-// LFP baseline ≈ 30 m²/MWh; NMC ~30% denser → ~21 m²/MWh; NCA ~22% denser than that.
-// (covers cabinets, BMS, HVAC, aisles, transformer pad, fire-gap)
-const FOOTPRINT_M2_PER_KWH: Record<Chemistry, number> = {
-  LFP: 0.03,
-  NMC: 0.0207, // 30% smaller than LFP — higher Wh/L
-  LTO: 0.038,
-};
 
 export interface SizingResults {
   usableKWh: number;
