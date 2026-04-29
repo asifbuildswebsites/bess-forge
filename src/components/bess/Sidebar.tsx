@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
 import { useBess } from "@/store/bess-store";
 import { Slider } from "@/components/ui/slider";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Chemistry, tariffAtHour } from "@/lib/bess-calc";
 
 function SliderRow({
@@ -129,19 +122,15 @@ function SidebarControls() {
           <h3 className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase">
             Cell Chemistry
           </h3>
-          <Select
+          <select
             value={inputs.chemistry}
-            onValueChange={(v) => setInputs({ chemistry: v as Chemistry })}
+            onChange={(event) => setInputs({ chemistry: event.target.value as Chemistry })}
+            className="h-9 w-full rounded-md border border-border bg-void px-3 text-xs text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <SelectTrigger className="bg-void border-border data-cell text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-panel border-border">
-              <SelectItem value="LFP">LFP — Lithium Iron Phosphate</SelectItem>
-              <SelectItem value="NMC">NMC — Nickel Manganese Cobalt</SelectItem>
-              <SelectItem value="NCA">NCA — Nickel Cobalt Aluminium</SelectItem>
-            </SelectContent>
-          </Select>
+            <option value="LFP">LFP — Lithium Iron Phosphate</option>
+            <option value="NMC">NMC — Nickel Manganese Cobalt</option>
+            <option value="NCA">NCA — Nickel Cobalt Aluminium</option>
+          </select>
         </section>
 
         <section className="space-y-5 pt-2 border-t border-border">
