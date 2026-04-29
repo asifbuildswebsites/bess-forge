@@ -56,20 +56,31 @@ export function DispatchModule() {
         </h3>
         <div className="chart-pan-zoom h-96 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={dispatch.points} margin={{ top: 10, right: 28, left: -16, bottom: 10 }}>
+            <ComposedChart
+              data={dispatch.points}
+              margin={{ top: 10, right: 28, left: -16, bottom: 10 }}
+            >
               <CartesianGrid stroke="oklch(0.25 0.025 250)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="time"
                 stroke="oklch(0.55 0.02 250)"
                 tick={{ fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
-                tickFormatter={(v) => `${Math.floor(v).toString().padStart(2, "0")}:${v % 1 ? "30" : "00"}`}
+                tickFormatter={(v) =>
+                  `${Math.floor(v).toString().padStart(2, "0")}:${v % 1 ? "30" : "00"}`
+                }
                 interval={5}
               />
               <YAxis
                 yAxisId="left"
                 stroke="oklch(0.85 0.18 200)"
                 tick={{ fill: "oklch(0.85 0.18 200)", fontSize: 11 }}
-                label={{ value: "SoC (%)", angle: -90, position: "insideLeft", fill: "oklch(0.85 0.18 200)", fontSize: 11 }}
+                label={{
+                  value: "SoC (%)",
+                  angle: -90,
+                  position: "insideLeft",
+                  fill: "oklch(0.85 0.18 200)",
+                  fontSize: 11,
+                }}
                 domain={[0, 100]}
               />
               <YAxis
@@ -77,7 +88,13 @@ export function DispatchModule() {
                 orientation="right"
                 stroke="oklch(0.85 0.18 90)"
                 tick={{ fill: "oklch(0.85 0.18 90)", fontSize: 11 }}
-                label={{ value: "Power (kW)", angle: 90, position: "insideRight", fill: "oklch(0.85 0.18 90)", fontSize: 11 }}
+                label={{
+                  value: "Power (kW)",
+                  angle: 90,
+                  position: "insideRight",
+                  fill: "oklch(0.85 0.18 90)",
+                  fontSize: 11,
+                }}
               />
               <Tooltip
                 contentStyle={{

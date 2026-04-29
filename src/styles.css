@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -97,15 +97,15 @@ html[data-theme="light"] .dark {
   --fiber-violet: oklch(0.5 0.2 290);
 
   --background: oklch(1 0 0);
-  --foreground: oklch(0.20 0.02 250);
+  --foreground: oklch(0.2 0.02 250);
   --card: var(--panel);
-  --card-foreground: oklch(0.20 0.02 250);
+  --card-foreground: oklch(0.2 0.02 250);
   --popover: var(--panel);
-  --popover-foreground: oklch(0.20 0.02 250);
+  --popover-foreground: oklch(0.2 0.02 250);
   --primary: var(--pulse-cyan);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.94 0.005 250);
-  --secondary-foreground: oklch(0.20 0.02 250);
+  --secondary-foreground: oklch(0.2 0.02 250);
   --muted: oklch(0.94 0.005 250);
   --muted-foreground: oklch(0.45 0.02 250);
   --accent: oklch(0.93 0.01 215);
@@ -119,7 +119,8 @@ html[data-theme="light"] .dark {
   * {
     border-color: var(--color-border);
   }
-  html, body {
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
