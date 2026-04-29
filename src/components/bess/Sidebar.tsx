@@ -80,6 +80,41 @@ function NumberField({
   );
 }
 
+function InlineSelect<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: Array<{ value: T; label: string }>;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <label className="text-xs text-foreground/80">{label}</label>
+      <div className="grid gap-1.5">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            aria-pressed={value === option.value}
+            className={`h-9 border px-3 text-left text-xs data-cell transition-colors ${
+              value === option.value
+                ? "border-pulse-cyan bg-pulse-cyan/12 text-pulse-cyan"
+                : "border-border bg-void text-muted-foreground hover:border-pulse-cyan/50 hover:text-foreground"
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SidebarControls() {
   const { inputs, setInputs, thermal, setThermal, economics } = useBess();
   const [liveTariff, setLiveTariff] = useState(() => tariffAtHour(0));
@@ -126,18 +161,16 @@ function SidebarControls() {
           <h3 className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase">
             Battery Sizing Calculator
           </h3>
-          <div className="space-y-2">
-            <label className="text-xs text-foreground/80">Battery Chemistry</label>
-            <select
-              value={inputs.chemistry}
-              onChange={(event) => setInputs({ chemistry: event.target.value as Chemistry })}
-              className="h-9 w-full border border-border bg-void px-3 text-xs data-cell text-pulse-cyan outline-none focus:border-pulse-cyan"
-            >
-              <option value="LFP">LFP (3.2V nominal)</option>
-              <option value="NMC">NMC (3.6V nominal)</option>
-              <option value="LTO">LTO (2.4V nominal)</option>
-            </select>
-          </div>
+          <InlineSelect<Chemistry>
+            label="Battery Chemistry"
+            value={inputs.chemistry}
+            onChange={(chemistry) => setInputs({ chemistry })}
+            options={[
+              { value: "LFP", label: "LFP (3.2V nominal)" },
+              { value: "NMC", label: "NMC (3.6V nominal)" },
+              { value: "LTO", label: "LTO (2.4V nominal)" },
+            ]}
+          />
           <NumberField
             label="Desired Energy Capacity"
             unit="MWh"
@@ -209,21 +242,21 @@ function SidebarControls() {
             step={1}
           />
           <div className="space-y-2">
-            <label className="text-xs text-foreground/80">Cell Capacity</label>
-            <select
+            <InlineSelect
+              label="Cell Capacity"
               value={presetCellCapacity}
-              onChange={(event) => {
-                if (event.target.value !== "custom") {
-                  setInputs({ cellCapacityAh: Number(event.target.value) });
+              onChange={(capacity) => {
+                if (capacity !== "custom") {
+                  setInputs({ cellCapacityAh: Number(capacity) });
                 }
               }}
-              className="h-9 w-full border border-border bg-void px-3 text-xs data-cell text-pulse-cyan outline-none focus:border-pulse-cyan"
-            >
-              <option value="280">280 Ah</option>
-              <option value="314">314 Ah</option>
-              <option value="560">560 Ah</option>
-              <option value="custom">Custom</option>
-            </select>
+              options={[
+                { value: "280", label: "280 Ah" },
+                { value: "314", label: "314 Ah" },
+                { value: "560", label: "560 Ah" },
+                { value: "custom", label: "Custom" },
+              ]}
+            />
             {presetCellCapacity === "custom" && (
               <Input
                 type="number"
