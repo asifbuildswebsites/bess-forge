@@ -1,9 +1,12 @@
 import { useBess } from "@/store/bess-store";
 import { MetricCard } from "@/components/bess/MetricCard";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
+  computeCashFlows,
   computeEconomics,
   computeSizing,
   computeThermal,
@@ -11,7 +14,7 @@ import {
   formatNum,
   simulateDispatch,
 } from "@/lib/bess-calc";
-import { Download, ArrowDown, AlertTriangle } from "lucide-react";
+import { Download, ArrowDown, AlertTriangle, ChevronDown } from "lucide-react";
 import { generateReport } from "@/lib/pdf-report";
 
 export function EconomicsModule() {
@@ -33,6 +36,7 @@ export function EconomicsModule() {
 
   const simplePayback = isFinite(economics.paybackYears) ? economics.paybackYears : null;
   const npvIsNegative = economics.npv < 0;
+  const cashFlows = computeCashFlows(economics, thermalResult, 15);
   const sensitivityRows = [
     getSensitivityRow("Installed cost", "installedCost", 35000),
     getSensitivityRow("Live tariff", "tariff", 1),
