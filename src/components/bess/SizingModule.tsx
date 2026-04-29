@@ -78,7 +78,7 @@ export function SizingModule() {
             <Stat
               label="Parallel Strings"
               value={formatNum(sizing.parallelStrings)}
-              sub="280 Ah cells"
+              sub={`${inputs.cellCapacityAh} Ah cells`}
             />
             <Stat label="Total Cells" value={formatNum(sizing.totalCells)} sub="approximate" />
           </div>
