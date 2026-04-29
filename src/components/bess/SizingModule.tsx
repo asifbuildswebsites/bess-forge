@@ -70,7 +70,7 @@ export function SizingModule() {
             <Stat label="Total Cells" value={formatNum(sizing.totalCells)} sub="approximate" />
           </div>
 
-          <div className="mt-8 rounded-md border border-border bg-void/40 p-4">
+          <div className="mt-8 overflow-x-auto rounded-md border border-border bg-void/40 p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Rack Diagram
