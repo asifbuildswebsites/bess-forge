@@ -2,6 +2,7 @@ import { useBess } from "@/store/bess-store";
 import { MetricCard } from "@/components/bess/MetricCard";
 import { formatNum } from "@/lib/bess-calc";
 import type { ReactNode } from "react";
+import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 
 export function SizingModule() {
   const { sizing, inputs, thermal } = useBess();
@@ -13,8 +14,16 @@ export function SizingModule() {
     ? "bg-pulse-amber/18 border-pulse-amber/55 text-pulse-amber glow-amber"
     : "bg-pulse-cyan/14 border-pulse-cyan/50 text-pulse-cyan glow-cyan";
   const nominalVoltage = sizing.cellsSeries * 3.2;
-  const capacityPerStringKWh = (nominalVoltage * 280) / 1000;
+  const chemistryVoltage = inputs.chemistry === "LFP" ? 3.2 : inputs.chemistry === "NMC" ? 3.6 : 2.4;
+  const nominalStringVoltage = sizing.cellsSeries * chemistryVoltage;
+  const capacityPerStringKWh = (nominalStringVoltage * inputs.cellCapacityAh) / 1000;
   const footprintScale = Math.max(0.28, Math.min(1, Math.sqrt(sizing.footprintM2 / 145)));
+  const cRateStatus =
+    sizing.cRate < 1
+      ? { label: "C-rate < 1C", tone: "text-pulse-green border-pulse-green/40 bg-pulse-green/10", Icon: CheckCircle2 }
+      : sizing.cRate <= 2
+        ? { label: "C-rate 1–2C", tone: "text-pulse-amber border-pulse-amber/40 bg-pulse-amber/10", Icon: AlertTriangle }
+        : { label: "C-rate > 2C", tone: "text-pulse-red border-pulse-red/40 bg-pulse-red/10", Icon: XCircle };
 
   return (
     <div className="space-y-8">
@@ -31,28 +40,33 @@ export function SizingModule() {
           value={formatNum(sizing.usableKWh, 0)}
           unit="kWh"
           variant="cyan"
-          hint={`${inputs.peakLoadKW} kW × ${inputs.autonomyHours} h`}
+          hint={`${inputs.desiredEnergyMWh.toFixed(1)} MWh × DOD × RTE`}
         />
         <MetricCard
           label="Nameplate Capacity"
           value={formatNum(sizing.nameplateKWh, 0)}
           unit="kWh"
-          hint={`@ ${inputs.dodPct}% DOD, ${inputs.rteEffPct}% RTE`}
+          hint="Desired energy input"
         />
         <MetricCard
-          label="Recommended C-Rate"
+          label="C-Rate"
           value={sizing.cRate.toFixed(2)}
           unit="C"
-          variant={sizing.cRate > 1.5 ? "amber" : "green"}
-          hint={sizing.cRate > 1 ? "High discharge rate" : "Comfortable rate"}
+          variant={sizing.cRate > 2 ? "red" : sizing.cRate >= 1 ? "amber" : "green"}
+          hint={`${(inputs.peakLoadKW / 1000).toFixed(1)} MW / ${inputs.desiredEnergyMWh.toFixed(1)} MWh`}
         />
         <MetricCard
           label="Footprint Estimate"
           value={formatNum(sizing.footprintM2, 0)}
           unit="m²"
           variant="violet"
-          hint={`${inputs.chemistry} energy density`}
+          hint="1.2 m² per rack/string"
         />
+      </div>
+
+      <div className={`inline-flex items-center gap-2 border px-3 py-2 text-xs ${cRateStatus.tone}`}>
+        <cRateStatus.Icon className="size-4" />
+        <span className="data-cell font-bold uppercase tracking-wider">{cRateStatus.label}</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -111,10 +125,7 @@ export function SizingModule() {
             <div className="mt-5 grid gap-3 md:grid-cols-[1fr_0.8fr]">
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <LegendItem label="Total cells" value={formatNum(sizing.totalCells)} />
-                <LegendItem
-                  label="Voltage"
-                  value={`${formatNum(sizing.cellsSeries)} × 3.2V = ${formatNum(nominalVoltage, 0)}V`}
-                />
+                <LegendItem label="Voltage" value={`${formatNum(sizing.cellsSeries)} × ${chemistryVoltage}V = ${formatNum(nominalStringVoltage, 0)}V`} />
                 <LegendItem
                   label="Capacity / string"
                   value={`${formatNum(capacityPerStringKWh, 0)} kWh`}
