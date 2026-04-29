@@ -316,6 +316,46 @@ export function EconomicsModule() {
         </div>
       </div>
 
+      <div className="bg-panel border border-border p-6">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Sensitivity Analysis
+            </h3>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              ±20% scenario impact on NPV, ranked by absolute swing.
+            </p>
+          </div>
+          <div className="data-cell text-[10px] uppercase tracking-widest text-muted-foreground">
+            Base NPV {formatINR(economics.npv)}
+          </div>
+        </div>
+        <div className="space-y-4">
+          {sensitivityRows.map((row) => (
+            <div key={row.label} className="grid gap-2 md:grid-cols-[150px_1fr_86px] md:items-center">
+              <div>
+                <div className="text-xs font-semibold text-foreground">{row.label}</div>
+                <div className="data-cell text-[10px] text-muted-foreground">±20% · {row.range}</div>
+              </div>
+              <div className="relative h-9 rounded-sm border border-border bg-background/45">
+                <div className="absolute left-1/2 top-0 h-full w-px bg-muted-foreground/35" />
+                <div
+                  className="absolute right-1/2 top-2 h-5 rounded-l-xs border border-pulse-red/50 bg-pulse-red/35"
+                  style={{ width: `${(Math.abs(Math.min(row.lowDelta, row.highDelta, 0)) / maxSensitivitySwing) * 50}%` }}
+                />
+                <div
+                  className="absolute left-1/2 top-2 h-5 rounded-r-xs border border-pulse-green/50 bg-pulse-green/30"
+                  style={{ width: `${(Math.max(row.lowDelta, row.highDelta, 0) / maxSensitivitySwing) * 50}%` }}
+                />
+              </div>
+              <div className="data-cell text-right text-xs text-pulse-cyan">
+                ±₹{(row.swing / 1e7).toFixed(2)} Cr
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-panel border border-border p-6">
           <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
