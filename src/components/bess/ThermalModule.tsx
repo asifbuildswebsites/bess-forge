@@ -1,7 +1,8 @@
 import { useBess } from "@/store/bess-store";
 import { MetricCard } from "@/components/bess/MetricCard";
 import {
-  LineChart,
+  Area,
+  ComposedChart,
   Line,
   XAxis,
   YAxis,
@@ -11,6 +12,35 @@ import {
   ReferenceLine,
 } from "recharts";
 import { AlertTriangle } from "lucide-react";
+
+type SohChartPoint = {
+  year: number;
+  soh: number;
+  sohBand: [number, number];
+  remainingCapacityKWh: number;
+};
+
+function SohTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: SohChartPoint }> }) {
+  if (!active || !payload?.length) return null;
+
+  const point = payload[0].payload;
+  return (
+    <div className="border border-border bg-panel px-3 py-2 text-xs shadow-lg">
+      <div className="font-semibold text-pulse-cyan">Year {point.year}</div>
+      <div className="mt-1 grid gap-1 text-muted-foreground">
+        <div>
+          SOH: <span className="font-mono text-foreground">{point.soh.toFixed(2)}%</span>
+        </div>
+        <div>
+          Remaining capacity: {" "}
+          <span className="font-mono text-foreground">
+            {point.remainingCapacityKWh.toLocaleString("en-IN", { maximumFractionDigits: 1 })} kWh
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function ThermalModule() {
   const { thermalResult, thermal, sizing } = useBess();
