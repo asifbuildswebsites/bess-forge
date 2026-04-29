@@ -3,7 +3,14 @@ import { MetricCard } from "@/components/bess/MetricCard";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { formatINR, formatNum } from "@/lib/bess-calc";
+import {
+  computeEconomics,
+  computeSizing,
+  computeThermal,
+  formatINR,
+  formatNum,
+  simulateDispatch,
+} from "@/lib/bess-calc";
 import { Download, ArrowDown, AlertTriangle } from "lucide-react";
 import { generateReport } from "@/lib/pdf-report";
 
@@ -26,6 +33,13 @@ export function EconomicsModule() {
 
   const simplePayback = isFinite(economics.paybackYears) ? economics.paybackYears : null;
   const npvIsNegative = economics.npv < 0;
+  const sensitivityRows = [
+    getSensitivityRow("Installed cost", "installedCost", 35000),
+    getSensitivityRow("Live tariff", "tariff", 1),
+    getSensitivityRow("Solar PV size", "solar", inputs.solarKWp),
+    getSensitivityRow("DOD", "dod", inputs.dodPct),
+  ].sort((a, b) => b.swing - a.swing);
+  const maxSensitivitySwing = Math.max(...sensitivityRows.map((row) => row.swing), 1);
   const viabilityActions = [
     {
       label: "Enable Demand Charge Reduction",
@@ -47,6 +61,61 @@ export function EconomicsModule() {
       onClick: () => setInputs({ solarKWp: Math.min(5000, inputs.solarKWp + 500) }),
     },
   ];
+
+  function getSensitivityNpv(
+    variable: "installedCost" | "tariff" | "solar" | "dod",
+    multiplier: number,
+  ) {
+    const scenarioInputs = {
+      ...inputs,
+      solarKWp:
+        variable === "solar" ? Math.max(0, Math.min(5000, inputs.solarKWp * multiplier)) : inputs.solarKWp,
+      dodPct:
+        variable === "dod" ? Math.max(70, Math.min(95, inputs.dodPct * multiplier)) : inputs.dodPct,
+    };
+    const scenarioSizing = variable === "solar" ? sizing : computeSizing(scenarioInputs);
+    const scenarioDispatch = simulateDispatch(scenarioInputs, scenarioSizing);
+    const dispatchForTariff =
+      variable === "tariff"
+        ? {
+            ...scenarioDispatch,
+            annualSavings: scenarioDispatch.annualSavings * multiplier,
+          }
+        : scenarioDispatch;
+    const scenarioThermal = computeThermal({
+      ...thermal,
+      cRate: scenarioSizing.cRate,
+      chemistry: scenarioInputs.chemistry,
+      dodPct: scenarioInputs.dodPct,
+    });
+
+    return computeEconomics({
+      sizing: scenarioSizing,
+      dispatch: dispatchForTariff,
+      thermalResult: scenarioThermal,
+      years: thermal.years,
+      dailyCycles: thermal.dailyCycles,
+      dodPct: scenarioInputs.dodPct,
+      installedCostPerKWh: variable === "installedCost" ? 35000 * multiplier : undefined,
+      revenue,
+    }).npv;
+  }
+
+  function getSensitivityRow(
+    label: string,
+    variable: "installedCost" | "tariff" | "solar" | "dod",
+    base: number,
+  ) {
+    const low = getSensitivityNpv(variable, 0.8);
+    const high = getSensitivityNpv(variable, 1.2);
+    return {
+      label,
+      range: `${formatNum(base * 0.8, variable === "tariff" ? 1 : 0)}–${formatNum(base * 1.2, variable === "tariff" ? 1 : 0)}`,
+      lowDelta: low - economics.npv,
+      highDelta: high - economics.npv,
+      swing: Math.abs(high - low),
+    };
+  }
 
   return (
     <div className="space-y-8">
