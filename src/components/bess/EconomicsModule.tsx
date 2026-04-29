@@ -39,7 +39,10 @@ export function EconomicsModule() {
     getSensitivityRow("Solar PV size", "solar", inputs.solarKWp),
     getSensitivityRow("DOD", "dod", inputs.dodPct),
   ].sort((a, b) => b.swing - a.swing);
-  const maxSensitivitySwing = Math.max(...sensitivityRows.map((row) => row.swing), 1);
+  const maxSensitivityDelta = Math.max(
+    ...sensitivityRows.flatMap((row) => [Math.abs(row.lowDelta), Math.abs(row.highDelta)]),
+    1,
+  );
   const viabilityActions = [
     {
       label: "Enable Demand Charge Reduction",
@@ -341,11 +344,11 @@ export function EconomicsModule() {
                 <div className="absolute left-1/2 top-0 h-full w-px bg-muted-foreground/35" />
                 <div
                   className="absolute right-1/2 top-2 h-5 rounded-l-xs border border-pulse-red/50 bg-pulse-red/35"
-                  style={{ width: `${(Math.abs(Math.min(row.lowDelta, row.highDelta, 0)) / maxSensitivitySwing) * 50}%` }}
+                  style={{ width: `${(Math.abs(Math.min(row.lowDelta, row.highDelta, 0)) / maxSensitivityDelta) * 50}%` }}
                 />
                 <div
                   className="absolute left-1/2 top-2 h-5 rounded-r-xs border border-pulse-green/50 bg-pulse-green/30"
-                  style={{ width: `${(Math.max(row.lowDelta, row.highDelta, 0) / maxSensitivitySwing) * 50}%` }}
+                  style={{ width: `${(Math.max(row.lowDelta, row.highDelta, 0) / maxSensitivityDelta) * 50}%` }}
                 />
               </div>
               <div className="data-cell text-right text-xs text-pulse-cyan">
