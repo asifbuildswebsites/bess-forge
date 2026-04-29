@@ -83,13 +83,13 @@ export function SizingModule() {
             Pack Configuration
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
-            <Stat label="Cells in Series" value={formatNum(sizing.cellsSeries)} sub="@ 800V bus" />
+            <Stat label="Cells in Series" value={formatNum(rackSeriesCells)} sub="@ 800V bus" />
             <Stat
               label="Parallel Strings"
               value={formatNum(sizing.parallelStrings)}
               sub={`${inputs.cellCapacityAh} Ah cells`}
             />
-            <Stat label="Total Cells" value={formatNum(sizing.totalCells)} sub="approximate" />
+            <Stat label="Total Cells" value={formatNum(rackSeriesCells * rackParallelStrings)} sub="live rack count" />
           </div>
 
           <div className="mt-8 rounded-md border border-border bg-void/40 p-4">
@@ -231,6 +231,15 @@ function LegendItem({ label, value }: { label: string; value: string }) {
       </div>
       <div className="data-cell mt-1 text-xs text-foreground">{value}</div>
     </div>
+  );
+}
+
+function StatusDot({ className, label }: { className: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className={`size-2 rounded-full ${className}`} />
+      {label}
+    </span>
   );
 }
 
