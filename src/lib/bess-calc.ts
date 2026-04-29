@@ -261,6 +261,7 @@ export interface EconomicsInputs {
   years: number;
   dailyCycles: number;
   dodPct: number;
+  installedCostPerKWh?: number;
   revenue?: RevenueStreams;
 }
 
@@ -282,7 +283,7 @@ const CAPEX_PER_KWH = 35000; // ₹ — 2025 Indian utility-scale BESS
 const REPLACEMENT_FRACTION = 0.6;
 
 export function computeEconomics(e: EconomicsInputs): EconomicsResults {
-  const capex = e.sizing.nameplateKWh * CAPEX_PER_KWH;
+  const capex = e.sizing.nameplateKWh * (e.installedCostPerKWh ?? CAPEX_PER_KWH);
   const annualOpex = capex * 0.015;
 
   const rev = e.revenue ?? {
