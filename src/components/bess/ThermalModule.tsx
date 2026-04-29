@@ -45,6 +45,18 @@ function SohTooltip({ active, payload }: { active?: boolean; payload?: Array<{ p
 export function ThermalModule() {
   const { thermalResult, thermal, sizing } = useBess();
   const finalSoh = thermalResult.points[thermalResult.points.length - 1].soh;
+  const chartData: SohChartPoint[] = thermalResult.points.map((point) => {
+    const fade = 100 - point.soh;
+    const lowerSoh = Math.max(0, 100 - fade * 1.1);
+    const upperSoh = Math.min(100, 100 - fade * 0.9);
+
+    return {
+      year: point.year,
+      soh: point.soh,
+      sohBand: [lowerSoh, upperSoh],
+      remainingCapacityKWh: sizing.nameplateKWh * (point.soh / 100),
+    };
+  });
   return (
     <div className="space-y-8">
       <div>
@@ -102,7 +114,7 @@ export function ThermalModule() {
         </h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={thermalResult.points} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+            <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
               <CartesianGrid stroke="oklch(0.25 0.025 250)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="year"
@@ -116,14 +128,7 @@ export function ThermalModule() {
                 domain={[0, 100]}
                 label={{ value: "SOH (%)", angle: -90, position: "insideLeft", fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
               />
-              <Tooltip
-                contentStyle={{
-                  background: "oklch(0.13 0.02 250)",
-                  border: "1px solid oklch(0.25 0.025 250)",
-                  fontSize: 12,
-                }}
-                labelStyle={{ color: "oklch(0.85 0.18 200)" }}
-              />
+              <Tooltip content={<SohTooltip />} />
               <ReferenceLine
                 y={80}
                 stroke="oklch(0.85 0.18 90)"
@@ -138,7 +143,16 @@ export function ThermalModule() {
                 dot={{ fill: "oklch(0.85 0.18 200)", r: 3 }}
                 activeDot={{ r: 5 }}
               />
-            </LineChart>
+              <Area
+                type="monotone"
+                dataKey="sohBand"
+                stroke="none"
+                fill="oklch(0.85 0.18 200)"
+                fillOpacity={0.18}
+                activeDot={false}
+                isAnimationActive={false}
+              />
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </div>
