@@ -122,15 +122,29 @@ function SidebarControls() {
           <h3 className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase">
             Cell Chemistry
           </h3>
-          <select
-            value={inputs.chemistry}
-            onChange={(event) => setInputs({ chemistry: event.target.value as Chemistry })}
-            className="h-9 w-full rounded-md border border-border bg-void px-3 text-xs text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <option value="LFP">LFP — Lithium Iron Phosphate</option>
-            <option value="NMC">NMC — Nickel Manganese Cobalt</option>
-            <option value="NCA">NCA — Nickel Cobalt Aluminium</option>
-          </select>
+          <div className="grid gap-2" role="radiogroup" aria-label="Cell chemistry">
+            {[
+              ["LFP", "Lithium Iron Phosphate"],
+              ["NMC", "Nickel Manganese Cobalt"],
+              ["NCA", "Nickel Cobalt Aluminium"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={inputs.chemistry === value}
+                onClick={() => setInputs({ chemistry: value as Chemistry })}
+                className={`flex items-center justify-between border px-3 py-2 text-left text-xs transition-colors ${
+                  inputs.chemistry === value
+                    ? "border-pulse-cyan bg-pulse-cyan/10 text-pulse-cyan"
+                    : "border-border bg-void text-foreground hover:border-pulse-cyan/60"
+                }`}
+              >
+                <span className="data-cell">{value}</span>
+                <span className="text-muted-foreground">{label}</span>
+              </button>
+            ))}
+          </div>
         </section>
 
         <section className="space-y-5 pt-2 border-t border-border">
