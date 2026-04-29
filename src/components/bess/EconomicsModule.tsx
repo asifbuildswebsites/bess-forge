@@ -3,7 +3,14 @@ import { MetricCard } from "@/components/bess/MetricCard";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { formatINR, formatNum } from "@/lib/bess-calc";
+import {
+  computeEconomics,
+  computeSizing,
+  computeThermal,
+  formatINR,
+  formatNum,
+  simulateDispatch,
+} from "@/lib/bess-calc";
 import { Download, ArrowDown, AlertTriangle } from "lucide-react";
 import { generateReport } from "@/lib/pdf-report";
 
@@ -26,6 +33,16 @@ export function EconomicsModule() {
 
   const simplePayback = isFinite(economics.paybackYears) ? economics.paybackYears : null;
   const npvIsNegative = economics.npv < 0;
+  const sensitivityRows = [
+    getSensitivityRow("Installed cost", "installedCost", 35000),
+    getSensitivityRow("Live tariff", "tariff", 1),
+    getSensitivityRow("Solar PV size", "solar", inputs.solarKWp),
+    getSensitivityRow("DOD", "dod", inputs.dodPct),
+  ].sort((a, b) => b.swing - a.swing);
+  const maxSensitivityDelta = Math.max(
+    ...sensitivityRows.flatMap((row) => [Math.abs(row.lowDelta), Math.abs(row.highDelta)]),
+    1,
+  );
   const viabilityActions = [
     {
       label: "Enable Demand Charge Reduction",
@@ -47,6 +64,63 @@ export function EconomicsModule() {
       onClick: () => setInputs({ solarKWp: Math.min(5000, inputs.solarKWp + 500) }),
     },
   ];
+
+  function getSensitivityNpv(
+    variable: "installedCost" | "tariff" | "solar" | "dod",
+    multiplier: number,
+  ) {
+    const scenarioInputs = {
+      ...inputs,
+      solarKWp:
+        variable === "solar"
+          ? Math.max(0, Math.min(5000, inputs.solarKWp * multiplier))
+          : inputs.solarKWp,
+      dodPct:
+        variable === "dod" ? Math.max(70, Math.min(95, inputs.dodPct * multiplier)) : inputs.dodPct,
+    };
+    const scenarioSizing = variable === "solar" ? sizing : computeSizing(scenarioInputs);
+    const scenarioDispatch = simulateDispatch(scenarioInputs, scenarioSizing);
+    const dispatchForTariff =
+      variable === "tariff"
+        ? {
+            ...scenarioDispatch,
+            annualSavings: scenarioDispatch.annualSavings * multiplier,
+          }
+        : scenarioDispatch;
+    const scenarioThermal = computeThermal({
+      ...thermal,
+      cRate: scenarioSizing.cRate,
+      chemistry: scenarioInputs.chemistry,
+      dodPct: scenarioInputs.dodPct,
+    });
+
+    return computeEconomics({
+      sizing: scenarioSizing,
+      dispatch: dispatchForTariff,
+      thermalResult: scenarioThermal,
+      years: thermal.years,
+      dailyCycles: thermal.dailyCycles,
+      dodPct: scenarioInputs.dodPct,
+      installedCostPerKWh: variable === "installedCost" ? 35000 * multiplier : undefined,
+      revenue,
+    }).npv;
+  }
+
+  function getSensitivityRow(
+    label: string,
+    variable: "installedCost" | "tariff" | "solar" | "dod",
+    base: number,
+  ) {
+    const low = getSensitivityNpv(variable, 0.8);
+    const high = getSensitivityNpv(variable, 1.2);
+    return {
+      label,
+      range: `${formatNum(base * 0.8, variable === "tariff" ? 1 : 0)}–${formatNum(base * 1.2, variable === "tariff" ? 1 : 0)}`,
+      lowDelta: low - economics.npv,
+      highDelta: high - economics.npv,
+      swing: Math.abs(high - low),
+    };
+  }
 
   return (
     <div className="space-y-8">
@@ -244,6 +318,55 @@ export function EconomicsModule() {
               {formatINR(economics.annualSavings)}
             </span>
           </div>
+        </div>
+      </div>
+
+      <div className="bg-panel border border-border p-6">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Sensitivity Analysis
+            </h3>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              ±20% scenario impact on NPV, ranked by absolute swing.
+            </p>
+          </div>
+          <div className="data-cell text-[10px] uppercase tracking-widest text-muted-foreground">
+            Base NPV {formatINR(economics.npv)}
+          </div>
+        </div>
+        <div className="space-y-4">
+          {sensitivityRows.map((row) => (
+            <div
+              key={row.label}
+              className="grid gap-2 md:grid-cols-[150px_1fr_86px] md:items-center"
+            >
+              <div>
+                <div className="text-xs font-semibold text-foreground">{row.label}</div>
+                <div className="data-cell text-[10px] text-muted-foreground">
+                  ±20% · {row.range}
+                </div>
+              </div>
+              <div className="relative h-9 rounded-sm border border-border bg-background/45">
+                <div className="absolute left-1/2 top-0 h-full w-px bg-muted-foreground/35" />
+                <div
+                  className="absolute right-1/2 top-2 h-5 rounded-l-xs border border-pulse-red/50 bg-pulse-red/35"
+                  style={{
+                    width: `${(Math.abs(Math.min(row.lowDelta, row.highDelta, 0)) / maxSensitivityDelta) * 50}%`,
+                  }}
+                />
+                <div
+                  className="absolute left-1/2 top-2 h-5 rounded-r-xs border border-pulse-green/50 bg-pulse-green/30"
+                  style={{
+                    width: `${(Math.max(row.lowDelta, row.highDelta, 0) / maxSensitivityDelta) * 50}%`,
+                  }}
+                />
+              </div>
+              <div className="data-cell text-right text-xs text-pulse-cyan">
+                ±₹{(row.swing / 1e7).toFixed(2)} Cr
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
