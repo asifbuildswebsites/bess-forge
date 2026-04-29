@@ -44,11 +44,11 @@ export function EconomicsModule() {
     setRevenue,
     setInputs,
   } = useBess();
-  const [reportMeta, setReportMeta] = useState({
+  const [reportMeta, setReportMeta] = useState(() => ({
     projectName: "Battery Energy Storage Project",
     clientName: "Client Name",
-    reportDate: getDefaultReportDate,
-  });
+    reportDate: getDefaultReportDate(),
+  }));
 
   const handleExport = () => {
     generateReport({ inputs, sizing, thermal, thermalResult, dispatch, economics, reportMeta });
