@@ -14,10 +14,10 @@ export function StatusBanner() {
   const { sizing, thermalResult, inputs, economics } = useBess();
   // Compute system status
   const thermalRisk = thermalResult.runawayRisk;
-  const cRateHigh = sizing.cRate > 1.5;
+  const cRateHigh = sizing.cRate > 2;
   const status: "viable" | "marginal" | "risk" = thermalRisk
     ? "risk"
-    : cRateHigh || sizing.cRate > 1.2
+    : cRateHigh || sizing.cRate >= 1
       ? "marginal"
       : "viable";
 
@@ -53,9 +53,9 @@ export function StatusBanner() {
             <span className="text-[10px] text-muted-foreground font-bold uppercase">C-Rate</span>
             <span
               className={`data-cell text-sm ${
-                sizing.cRate > 1.5
+                sizing.cRate > 2
                   ? "text-pulse-red"
-                  : sizing.cRate > 1
+                  : sizing.cRate >= 1
                     ? "text-pulse-amber"
                     : "text-pulse-green"
               }`}

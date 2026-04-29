@@ -16,7 +16,7 @@ import {
 const CHEM_COLOR: Record<Chemistry, string> = {
   LFP: "oklch(0.78 0.16 145)",
   NMC: "oklch(0.75 0.18 30)",
-  NCA: "oklch(0.7 0.2 300)",
+  LTO: "oklch(0.7 0.2 300)",
 };
 
 export function CompareModule() {

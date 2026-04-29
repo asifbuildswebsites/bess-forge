@@ -102,7 +102,7 @@ export function EconomicsModule() {
           ? Math.max(0, Math.min(5000, inputs.solarKWp * multiplier))
           : inputs.solarKWp,
       dodPct:
-        variable === "dod" ? Math.max(70, Math.min(95, inputs.dodPct * multiplier)) : inputs.dodPct,
+        variable === "dod" ? Math.max(50, Math.min(100, inputs.dodPct * multiplier)) : inputs.dodPct,
     };
     const scenarioSizing = variable === "solar" ? sizing : computeSizing(scenarioInputs);
     const scenarioDispatch = simulateDispatch(scenarioInputs, scenarioSizing);

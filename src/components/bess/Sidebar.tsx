@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useBess } from "@/store/bess-store";
+import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Chemistry, tariffAtHour } from "@/lib/bess-calc";
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function SliderRow({
   label,
@@ -39,9 +42,61 @@ function SliderRow({
   );
 }
 
+function NumberField({
+  label,
+  value,
+  onChange,
+  min,
+  max,
+  step,
+  unit,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  min: number;
+  max: number;
+  step: number;
+  unit: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <label className="text-xs text-foreground/80">{label}</label>
+      <div className="flex items-center gap-2">
+        <Input
+          type="number"
+          value={Number.isFinite(value) ? value : ""}
+          min={min}
+          max={max}
+          step={step}
+          onChange={(event) => onChange(clamp(Number(event.target.value), min, max))}
+          className="h-9 border-border bg-void data-cell text-pulse-cyan"
+        />
+        <span className="w-12 text-right text-[10px] uppercase tracking-wider text-muted-foreground">
+          {unit}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function SidebarControls() {
   const { inputs, setInputs, thermal, setThermal, economics } = useBess();
   const [liveTariff, setLiveTariff] = useState(() => tariffAtHour(0));
+  const [durationOverridden, setDurationOverridden] = useState(false);
+  const presetCellCapacity = [280, 314, 560].includes(inputs.cellCapacityAh)
+    ? String(inputs.cellCapacityAh)
+    : "custom";
+
+  useEffect(() => {
+    if (durationOverridden) return;
+    const powerMW = inputs.peakLoadKW / 1000;
+    const nextDuration = powerMW > 0 ? inputs.desiredEnergyMWh / powerMW : inputs.autonomyHours;
+    if (Number.isFinite(nextDuration) && Math.abs(nextDuration - inputs.autonomyHours) > 0.01) {
+      setInputs({ autonomyHours: Number(nextDuration.toFixed(2)) });
+    }
+  }, [inputs.desiredEnergyMWh, inputs.peakLoadKW, durationOverridden, inputs.autonomyHours, setInputs]);
+
   useEffect(() => {
     setLiveTariff(tariffAtHour(new Date().getHours()));
     const id = setInterval(() => {
@@ -60,124 +115,127 @@ function SidebarControls() {
           <div>
             <h1 className="font-semibold tracking-tight text-sm">BESS-CALC INDIA</h1>
             <p className="text-[10px] text-muted-foreground data-cell tracking-widest">
-              V.1.0 / GRID-IN
+              INTERACTIVE SIZING
             </p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-7">
+      <div className="flex-1 overflow-y-auto p-6 space-y-5">
         <section className="space-y-5">
           <h3 className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase">
-            Sizing Parameters
+            Battery Sizing Calculator
           </h3>
-          <SliderRow
-            label="Peak Load"
-            unit="kW"
-            value={inputs.peakLoadKW}
-            onChange={(v) => setInputs({ peakLoadKW: v })}
-            min={10}
-            max={10000}
-            step={10}
+          <div className="space-y-2">
+            <label className="text-xs text-foreground/80">Battery Chemistry</label>
+            <select
+              value={inputs.chemistry}
+              onChange={(event) => setInputs({ chemistry: event.target.value as Chemistry })}
+              className="h-9 w-full border border-border bg-void px-3 text-xs data-cell text-pulse-cyan outline-none focus:border-pulse-cyan"
+            >
+              <option value="LFP">LFP (3.2V nominal)</option>
+              <option value="NMC">NMC (3.6V nominal)</option>
+              <option value="LTO">LTO (2.4V nominal)</option>
+            </select>
+          </div>
+          <NumberField
+            label="Desired Energy Capacity"
+            unit="MWh"
+            value={inputs.desiredEnergyMWh}
+            onChange={(v) => setInputs({ desiredEnergyMWh: v })}
+            min={0.5}
+            max={20}
+            step={0.1}
           />
-          <SliderRow
-            label="Autonomy"
+          <NumberField
+            label="Desired Power"
+            unit="MW"
+            value={inputs.peakLoadKW / 1000}
+            onChange={(v) => setInputs({ peakLoadKW: Math.round(v * 1000) })}
+            min={0.1}
+            max={10}
+            step={0.1}
+          />
+          <NumberField
+            label="Discharge Duration"
             unit="hrs"
             value={inputs.autonomyHours}
-            onChange={(v) => setInputs({ autonomyHours: v })}
-            min={0.5}
-            max={8}
-            step={0.5}
+            onChange={(v) => {
+              const powerMW = inputs.peakLoadKW / 1000;
+              setDurationOverridden(true);
+              setInputs({
+                autonomyHours: v,
+                desiredEnergyMWh: clamp(Number((powerMW * v).toFixed(2)), 0.5, 20),
+              });
+            }}
+            min={0.05}
+            max={200}
+            step={0.1}
           />
+          {durationOverridden && (
+            <button
+              type="button"
+              onClick={() => setDurationOverridden(false)}
+              className="data-cell text-[10px] uppercase tracking-wider text-pulse-cyan hover:text-foreground"
+            >
+              Re-enable auto duration
+            </button>
+          )}
           <SliderRow
-            label="Solar PV"
-            unit="kWp"
-            value={inputs.solarKWp}
-            onChange={(v) => setInputs({ solarKWp: v })}
-            min={0}
-            max={5000}
-            step={50}
-          />
-          <SliderRow
-            label="DOD"
+            label="Depth of Discharge"
             unit="%"
             value={inputs.dodPct}
             onChange={(v) => setInputs({ dodPct: v })}
-            min={70}
-            max={95}
+            min={50}
+            max={100}
             step={1}
           />
           <SliderRow
-            label="Round-Trip Eff"
+            label="Round Trip Efficiency"
             unit="%"
             value={inputs.rteEffPct}
             onChange={(v) => setInputs({ rteEffPct: v })}
-            min={85}
-            max={98}
+            min={80}
+            max={95}
             step={1}
           />
-        </section>
-
-        <section className="space-y-3 pt-2 border-t border-border">
-          <h3 className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase">
-            Cell Chemistry
-          </h3>
-          <div className="grid gap-2" role="radiogroup" aria-label="Cell chemistry">
-            {[
-              ["LFP", "Lithium Iron Phosphate"],
-              ["NMC", "Nickel Manganese Cobalt"],
-              ["NCA", "Nickel Cobalt Aluminium"],
-            ].map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                aria-checked={inputs.chemistry === value}
-                onClick={() => setInputs({ chemistry: value as Chemistry })}
-                className={`flex items-center justify-between border px-3 py-2 text-left text-xs transition-colors ${
-                  inputs.chemistry === value
-                    ? "border-pulse-cyan bg-pulse-cyan/10 text-pulse-cyan"
-                    : "border-border bg-void text-foreground hover:border-pulse-cyan/60"
-                }`}
-              >
-                <span className="data-cell">{value}</span>
-                <span className="text-muted-foreground">{label}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="space-y-5 pt-2 border-t border-border">
-          <h3 className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase">
-            Thermal & Operations
-          </h3>
-          <SliderRow
-            label="Ambient Temp"
+          <NumberField
+            label="Ambient Temperature"
             unit="°C"
             value={thermal.ambientC}
             onChange={(v) => setThermal({ ambientC: v })}
-            min={15}
+            min={-10}
             max={50}
             step={1}
           />
-          <SliderRow
-            label="Daily Cycles"
-            unit="cyc"
-            value={thermal.dailyCycles}
-            onChange={(v) => setThermal({ dailyCycles: v })}
-            min={0.5}
-            max={2}
-            step={0.1}
-          />
-          <SliderRow
-            label="Operating Years"
-            unit="yr"
-            value={thermal.years}
-            onChange={(v) => setThermal({ years: v })}
-            min={1}
-            max={20}
-            step={1}
-          />
+          <div className="space-y-2">
+            <label className="text-xs text-foreground/80">Cell Capacity</label>
+            <select
+              value={presetCellCapacity}
+              onChange={(event) => {
+                if (event.target.value !== "custom") {
+                  setInputs({ cellCapacityAh: Number(event.target.value) });
+                }
+              }}
+              className="h-9 w-full border border-border bg-void px-3 text-xs data-cell text-pulse-cyan outline-none focus:border-pulse-cyan"
+            >
+              <option value="280">280 Ah</option>
+              <option value="314">314 Ah</option>
+              <option value="560">560 Ah</option>
+              <option value="custom">Custom</option>
+            </select>
+            {presetCellCapacity === "custom" && (
+              <Input
+                type="number"
+                value={inputs.cellCapacityAh}
+                min={100}
+                max={1000}
+                step={1}
+                onChange={(event) => setInputs({ cellCapacityAh: Number(event.target.value) })}
+                className="h-9 border-border bg-void data-cell text-pulse-cyan"
+              />
+            )}
+          </div>
         </section>
       </div>
 
@@ -190,30 +248,15 @@ function SidebarControls() {
         </div>
         <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] data-cell">
           <span className="text-muted-foreground uppercase tracking-wider">Nameplate</span>
-          <span className="text-pulse-cyan text-right">
-            {(
-              (inputs.peakLoadKW * inputs.autonomyHours) /
-              ((inputs.dodPct / 100) * (inputs.rteEffPct / 100)) /
-              1000
-            ).toFixed(2)}{" "}
-            MWh
-          </span>
+          <span className="text-pulse-cyan text-right">{inputs.desiredEnergyMWh.toFixed(2)} MWh</span>
 
           <span className="text-muted-foreground uppercase tracking-wider">C-Rate</span>
           <span className="text-pulse-cyan text-right">
-            {(
-              inputs.peakLoadKW /
-              ((inputs.peakLoadKW * inputs.autonomyHours) /
-                ((inputs.dodPct / 100) * (inputs.rteEffPct / 100)))
-            ).toFixed(2)}
-            C
+            {(inputs.peakLoadKW / (inputs.desiredEnergyMWh * 1000)).toFixed(2)}C
           </span>
 
           <span className="text-muted-foreground uppercase tracking-wider">Live Tariff</span>
           <span className="text-pulse-cyan text-right">₹{liveTariff.toFixed(2)}/kWh</span>
-
-          <span className="text-muted-foreground uppercase tracking-wider">SOH @ EoL</span>
-          <span className="text-pulse-cyan text-right">80.0%</span>
 
           <span className="text-muted-foreground uppercase tracking-wider">Arbitrage + DCR ₹</span>
           <span className="text-pulse-green text-right">
@@ -227,7 +270,7 @@ function SidebarControls() {
         </div>
         <div className="pt-1 border-t border-border">
           <span className="text-[10px] data-cell text-pulse-green uppercase tracking-wider">
-            SYSTEM VIABLE / {inputs.chemistry} @ {inputs.peakLoadKW.toLocaleString("en-IN")}kW
+            {inputs.chemistry} / {inputs.cellCapacityAh.toLocaleString("en-IN")}Ah / {inputs.peakLoadKW.toLocaleString("en-IN")}kW
           </span>
         </div>
       </div>
@@ -239,7 +282,7 @@ export function Sidebar() {
   return (
     <aside
       suppressHydrationWarning
-      className="hidden w-80 shrink-0 border-r border-border bg-panel md:flex flex-col h-screen sticky top-0"
+      className="hidden w-80 max-w-80 shrink-0 border-r border-border bg-panel md:flex flex-col h-screen sticky top-0"
     >
       <SidebarControls />
     </aside>

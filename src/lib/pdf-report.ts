@@ -279,8 +279,8 @@ export function generateReport(d: ReportData) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   const method = [
-    "Sizing — Usable energy = Peak Load × Autonomy. Nameplate = Usable / (DOD × RTE).",
-    "Pack assumes 800V DC bus, 280 Ah prismatic cells (LFP 3.2V / NMC 3.6V / NCA 3.65V).",
+    "Sizing — Nameplate follows desired energy capacity; discharge duration = Energy / Power unless overridden.",
+    "Pack assumes 800V DC bus and selected prismatic cell capacity (LFP 3.2V / NMC 3.6V / LTO 2.4V).",
     "",
     "Thermal — Arrhenius capacity-fade model:",
     "Fade(%) = A × exp(-Ea / (R × T)) × sqrt(Ah_throughput),",

@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, ReactNode } from "react";
 import {
   computeSizing,
   computeThermal,
@@ -39,14 +39,16 @@ const Ctx = createContext<BessState | null>(null);
 export function BessProvider({ children }: { children: ReactNode }) {
   const [inputs, setInputsState] = useState<SizingInputs>({
     peakLoadKW: 1000,
+    desiredEnergyMWh: 4,
     autonomyHours: 4,
     solarKWp: 500,
     chemistry: "LFP",
+    cellCapacityAh: 280,
     dodPct: 90,
     rteEffPct: 92,
   });
   const [thermal, setThermalState] = useState<ThermalUiInputs>({
-    ambientC: 40,
+    ambientC: 35,
     dailyCycles: 1.2,
     years: 15,
   });
@@ -57,12 +59,18 @@ export function BessProvider({ children }: { children: ReactNode }) {
     demandRatePerKVA: 400,
   });
 
-  const setInputs = (p: Partial<SizingInputs>) =>
-    setInputsState((s) => ({ ...s, ...p }));
-  const setThermal = (p: Partial<ThermalUiInputs>) =>
-    setThermalState((s) => ({ ...s, ...p }));
-  const setRevenue = (p: Partial<RevenueStreams>) =>
-    setRevenueState((s) => ({ ...s, ...p }));
+  const setInputs = useCallback(
+    (p: Partial<SizingInputs>) => setInputsState((s) => ({ ...s, ...p })),
+    [],
+  );
+  const setThermal = useCallback(
+    (p: Partial<ThermalUiInputs>) => setThermalState((s) => ({ ...s, ...p })),
+    [],
+  );
+  const setRevenue = useCallback(
+    (p: Partial<RevenueStreams>) => setRevenueState((s) => ({ ...s, ...p })),
+    [],
+  );
 
   const computeFor = useMemo(() => {
     return (chem: Chemistry) => {
