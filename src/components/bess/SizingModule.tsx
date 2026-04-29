@@ -25,7 +25,7 @@ export function SizingModule() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Usable Capacity"
           value={formatNum(sizing.usableKWh, 0)}
@@ -60,7 +60,7 @@ export function SizingModule() {
           <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
             Pack Configuration
           </h3>
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
             <Stat label="Cells in Series" value={formatNum(sizing.cellsSeries)} sub="@ 800V bus" />
             <Stat
               label="Parallel Strings"
@@ -70,7 +70,7 @@ export function SizingModule() {
             <Stat label="Total Cells" value={formatNum(sizing.totalCells)} sub="approximate" />
           </div>
 
-          <div className="mt-8 rounded-md border border-border bg-void/40 p-4">
+          <div className="mt-8 overflow-x-auto rounded-md border border-border bg-void/40 p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Rack Diagram
@@ -80,7 +80,7 @@ export function SizingModule() {
               </div>
             </div>
             <div
-              className="grid gap-1.5"
+              className="grid min-w-[560px] gap-1.5 md:min-w-0"
               style={{ gridTemplateColumns: `repeat(${visualSeriesSegments}, minmax(0, 1fr))` }}
             >
               {Array.from({ length: visualParallelRows * visualSeriesSegments }).map((_, i) => {

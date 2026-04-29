@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { useBess } from "@/store/bess-store";
 import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Chemistry, tariffAtHour } from "@/lib/bess-calc";
 
 function SliderRow({
@@ -40,7 +46,7 @@ function SliderRow({
   );
 }
 
-export function Sidebar() {
+function SidebarControls() {
   const { inputs, setInputs, thermal, setThermal, economics } = useBess();
   const [liveTariff, setLiveTariff] = useState(() => tariffAtHour(new Date().getHours()));
   useEffect(() => {
@@ -52,7 +58,7 @@ export function Sidebar() {
   }, []);
 
   return (
-    <aside className="w-80 shrink-0 border-r border-border bg-panel flex flex-col h-screen sticky top-0">
+    <>
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="size-9 bg-pulse-cyan glow-cyan rounded-sm flex items-center justify-center text-void font-bold">
@@ -60,7 +66,9 @@ export function Sidebar() {
           </div>
           <div>
             <h1 className="font-semibold tracking-tight text-sm">BESS-CALC INDIA</h1>
-            <p className="text-[10px] text-muted-foreground data-cell tracking-widest">V.1.0 / GRID-IN</p>
+            <p className="text-[10px] text-muted-foreground data-cell tracking-widest">
+              V.1.0 / GRID-IN
+            </p>
           </div>
         </div>
       </div>
@@ -179,10 +187,24 @@ export function Sidebar() {
         </div>
         <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] data-cell">
           <span className="text-muted-foreground uppercase tracking-wider">Nameplate</span>
-          <span className="text-pulse-cyan text-right">{(inputs.peakLoadKW * inputs.autonomyHours / ((inputs.dodPct / 100) * (inputs.rteEffPct / 100)) / 1000).toFixed(2)} MWh</span>
+          <span className="text-pulse-cyan text-right">
+            {(
+              (inputs.peakLoadKW * inputs.autonomyHours) /
+              ((inputs.dodPct / 100) * (inputs.rteEffPct / 100)) /
+              1000
+            ).toFixed(2)}{" "}
+            MWh
+          </span>
 
           <span className="text-muted-foreground uppercase tracking-wider">C-Rate</span>
-          <span className="text-pulse-cyan text-right">{(inputs.peakLoadKW / (inputs.peakLoadKW * inputs.autonomyHours / ((inputs.dodPct / 100) * (inputs.rteEffPct / 100)))).toFixed(2)}C</span>
+          <span className="text-pulse-cyan text-right">
+            {(
+              inputs.peakLoadKW /
+              ((inputs.peakLoadKW * inputs.autonomyHours) /
+                ((inputs.dodPct / 100) * (inputs.rteEffPct / 100)))
+            ).toFixed(2)}
+            C
+          </span>
 
           <span className="text-muted-foreground uppercase tracking-wider">Live Tariff</span>
           <span className="text-pulse-cyan text-right">₹{liveTariff.toFixed(2)}/kWh</span>
@@ -191,14 +213,14 @@ export function Sidebar() {
           <span className="text-pulse-cyan text-right">80.0%</span>
 
           <span className="text-muted-foreground uppercase tracking-wider">Arbitrage + DCR ₹</span>
-          <span className="text-pulse-green text-right">{
-            (() => {
+          <span className="text-pulse-green text-right">
+            {(() => {
               const n = economics.annualSavings;
               if (!isFinite(n)) return "—";
               const abs = Math.abs(n);
               return abs >= 1e5 ? `₹${(abs / 1e5).toFixed(2)} L` : `₹${(abs / 1000).toFixed(1)}k`;
-            })()
-          }</span>
+            })()}
+          </span>
         </div>
         <div className="pt-1 border-t border-border">
           <span className="text-[10px] data-cell text-pulse-green uppercase tracking-wider">
@@ -206,6 +228,18 @@ export function Sidebar() {
           </span>
         </div>
       </div>
+    </>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <aside className="hidden w-80 shrink-0 border-r border-border bg-panel md:flex flex-col h-screen sticky top-0">
+      <SidebarControls />
     </aside>
   );
+}
+
+export function MobileSettingsPanel() {
+  return <SidebarControls />;
 }

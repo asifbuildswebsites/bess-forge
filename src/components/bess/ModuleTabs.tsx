@@ -13,8 +13,8 @@ const tabs = [
 export function ModuleTabs() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   return (
-    <div className="flex items-center gap-2">
-      <nav className="flex bg-void p-1 border border-border rounded-sm">
+    <div className="flex min-w-0 flex-1 items-center gap-2">
+      <nav className="flex max-w-full overflow-x-auto rounded-sm border border-border bg-void p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {tabs.map((t) => {
           const active = path === t.to;
           const Icon = t.icon;
@@ -22,7 +22,7 @@ export function ModuleTabs() {
             <Link
               key={t.id}
               to={t.to}
-              className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-sm flex items-center gap-2 transition-all ${
+              className={`flex shrink-0 items-center gap-2 rounded-sm px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all md:px-4 ${
                 active
                   ? "text-pulse-cyan bg-pulse-cyan/10 shadow-[0_0_10px_rgba(0,242,255,0.1)]"
                   : "text-muted-foreground hover:text-foreground"
@@ -34,7 +34,9 @@ export function ModuleTabs() {
           );
         })}
       </nav>
-      <ThemeToggle />
+      <div className="shrink-0">
+        <ThemeToggle />
+      </div>
     </div>
   );
 }

@@ -24,7 +24,7 @@ export function DispatchModule() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Cost without BESS"
           value={formatINR(dispatch.costWithoutBess)}
@@ -54,22 +54,33 @@ export function DispatchModule() {
         <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
           24h Dispatch Profile · SoC vs Grid Import
         </h3>
-        <div className="h-96">
+        <div className="chart-pan-zoom h-96 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={dispatch.points} margin={{ top: 10, right: 40, left: 0, bottom: 10 }}>
+            <ComposedChart
+              data={dispatch.points}
+              margin={{ top: 10, right: 28, left: -16, bottom: 10 }}
+            >
               <CartesianGrid stroke="oklch(0.25 0.025 250)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="time"
                 stroke="oklch(0.55 0.02 250)"
                 tick={{ fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
-                tickFormatter={(v) => `${Math.floor(v).toString().padStart(2, "0")}:${v % 1 ? "30" : "00"}`}
+                tickFormatter={(v) =>
+                  `${Math.floor(v).toString().padStart(2, "0")}:${v % 1 ? "30" : "00"}`
+                }
                 interval={5}
               />
               <YAxis
                 yAxisId="left"
                 stroke="oklch(0.85 0.18 200)"
                 tick={{ fill: "oklch(0.85 0.18 200)", fontSize: 11 }}
-                label={{ value: "SoC (%)", angle: -90, position: "insideLeft", fill: "oklch(0.85 0.18 200)", fontSize: 11 }}
+                label={{
+                  value: "SoC (%)",
+                  angle: -90,
+                  position: "insideLeft",
+                  fill: "oklch(0.85 0.18 200)",
+                  fontSize: 11,
+                }}
                 domain={[0, 100]}
               />
               <YAxis
@@ -77,7 +88,13 @@ export function DispatchModule() {
                 orientation="right"
                 stroke="oklch(0.85 0.18 90)"
                 tick={{ fill: "oklch(0.85 0.18 90)", fontSize: 11 }}
-                label={{ value: "Power (kW)", angle: 90, position: "insideRight", fill: "oklch(0.85 0.18 90)", fontSize: 11 }}
+                label={{
+                  value: "Power (kW)",
+                  angle: 90,
+                  position: "insideRight",
+                  fill: "oklch(0.85 0.18 90)",
+                  fontSize: 11,
+                }}
               />
               <Tooltip
                 contentStyle={{
@@ -132,7 +149,7 @@ export function DispatchModule() {
         <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
           ToD Tariff Schedule (₹/kWh)
         </h3>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
           {[
             { t: "00–06", r: 4.5, label: "Off-Peak" },
             { t: "06–10", r: 7.2, label: "Morning Peak" },

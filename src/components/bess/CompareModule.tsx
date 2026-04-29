@@ -36,7 +36,8 @@ export function CompareModule() {
       <div>
         <h2 className="text-xl font-semibold tracking-tight">Chemistry Comparison · LFP vs NMC</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Same load profile, ambient & cycling regime — head-to-head on lifetime, economics, footprint.
+          Same load profile, ambient & cycling regime — head-to-head on lifetime, economics,
+          footprint.
         </p>
       </div>
 
@@ -49,9 +50,9 @@ export function CompareModule() {
         <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
           State of Health · Side-by-Side
         </h3>
-        <div className="h-80">
+        <div className="chart-pan-zoom h-80 w-full md:h-96">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={sohData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+            <LineChart data={sohData} margin={{ top: 10, right: 18, left: -14, bottom: 10 }}>
               <CartesianGrid stroke="oklch(0.25 0.025 250)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="year"
@@ -62,7 +63,13 @@ export function CompareModule() {
                 stroke="oklch(0.55 0.02 250)"
                 tick={{ fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
                 domain={[40, 100]}
-                label={{ value: "SOH (%)", angle: -90, position: "insideLeft", fill: "oklch(0.55 0.02 250)", fontSize: 11 }}
+                label={{
+                  value: "SOH (%)",
+                  angle: -90,
+                  position: "insideLeft",
+                  fill: "oklch(0.55 0.02 250)",
+                  fontSize: 11,
+                }}
               />
               <Tooltip
                 contentStyle={{
@@ -73,8 +80,20 @@ export function CompareModule() {
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <ReferenceLine y={80} stroke="oklch(0.85 0.18 90)" strokeDasharray="4 4" />
-              <Line type="monotone" dataKey="LFP" stroke={CHEM_COLOR.LFP} strokeWidth={2.5} dot={false} />
-              <Line type="monotone" dataKey="NMC" stroke={CHEM_COLOR.NMC} strokeWidth={2.5} dot={false} />
+              <Line
+                type="monotone"
+                dataKey="LFP"
+                stroke={CHEM_COLOR.LFP}
+                strokeWidth={2.5}
+                dot={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="NMC"
+                stroke={CHEM_COLOR.NMC}
+                strokeWidth={2.5}
+                dot={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -88,8 +107,12 @@ export function CompareModule() {
           <thead>
             <tr className="text-left text-[10px] uppercase tracking-widest text-muted-foreground border-b border-border">
               <th className="py-2">Metric</th>
-              <th className="py-2 data-cell" style={{ color: CHEM_COLOR.LFP }}>LFP</th>
-              <th className="py-2 data-cell" style={{ color: CHEM_COLOR.NMC }}>NMC</th>
+              <th className="py-2 data-cell" style={{ color: CHEM_COLOR.LFP }}>
+                LFP
+              </th>
+              <th className="py-2 data-cell" style={{ color: CHEM_COLOR.NMC }}>
+                NMC
+              </th>
               <th className="py-2">Winner</th>
             </tr>
           </thead>
@@ -113,10 +136,16 @@ export function CompareModule() {
             />
             <Row
               k="EOL Year (SOH<80%)"
-              a={lfp.thermalResult.eolYear ? `Yr ${lfp.thermalResult.eolYear}` : `>${thermal.years}y`}
-              b={nmc.thermalResult.eolYear ? `Yr ${nmc.thermalResult.eolYear}` : `>${thermal.years}y`}
+              a={
+                lfp.thermalResult.eolYear ? `Yr ${lfp.thermalResult.eolYear}` : `>${thermal.years}y`
+              }
+              b={
+                nmc.thermalResult.eolYear ? `Yr ${nmc.thermalResult.eolYear}` : `>${thermal.years}y`
+              }
               winner={
-                (lfp.thermalResult.eolYear ?? 999) > (nmc.thermalResult.eolYear ?? 999) ? "LFP" : "NMC"
+                (lfp.thermalResult.eolYear ?? 999) > (nmc.thermalResult.eolYear ?? 999)
+                  ? "LFP"
+                  : "NMC"
               }
             />
             <Row
@@ -126,8 +155,12 @@ export function CompareModule() {
               winner={lfp.economics.capex < nmc.economics.capex ? "LFP" : "NMC"}
             />
             {(() => {
-              const lfpPayback = isFinite(lfp.economics.paybackYears) ? lfp.economics.paybackYears : null;
-              const nmcPayback = isFinite(nmc.economics.paybackYears) ? nmc.economics.paybackYears : null;
+              const lfpPayback = isFinite(lfp.economics.paybackYears)
+                ? lfp.economics.paybackYears
+                : null;
+              const nmcPayback = isFinite(nmc.economics.paybackYears)
+                ? nmc.economics.paybackYears
+                : null;
               const winner: Chemistry | "TIE" =
                 lfpPayback === null && nmcPayback === null
                   ? "TIE"
@@ -191,10 +224,7 @@ function ChemPanel({
   const finalSoh = result.thermalResult.points[result.thermalResult.points.length - 1].soh;
   const payback = isFinite(result.economics.paybackYears) ? result.economics.paybackYears : null;
   return (
-    <div
-      className="border bg-panel p-5 space-y-4"
-      style={{ borderColor: CHEM_COLOR[name] + "55" }}
-    >
+    <div className="border bg-panel p-5 space-y-4" style={{ borderColor: CHEM_COLOR[name] + "55" }}>
       <div className="flex items-center justify-between">
         <h3 className="data-cell text-lg font-bold" style={{ color: CHEM_COLOR[name] }}>
           {name}
@@ -203,7 +233,7 @@ function ChemPanel({
           {name === "LFP" ? "Iron Phosphate" : "Nickel Mn Cobalt"}
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <MetricCard label="Footprint" value={formatNum(result.sizing.footprintM2)} unit="m²" />
         <MetricCard label="CAPEX" value={formatINR(result.economics.capex)} variant="cyan" />
         <MetricCard

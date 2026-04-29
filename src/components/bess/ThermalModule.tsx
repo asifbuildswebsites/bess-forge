@@ -87,7 +87,7 @@ export function ThermalModule() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Ambient Temperature"
           value={thermal.ambientC}
@@ -118,9 +118,9 @@ export function ThermalModule() {
         <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
           State of Health Projection
         </h3>
-        <div className="h-80">
+        <div className="chart-pan-zoom h-80 w-full md:h-96">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+            <ComposedChart data={chartData} margin={{ top: 10, right: 18, left: -14, bottom: 10 }}>
               <CartesianGrid stroke="oklch(0.25 0.025 250)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="year"
