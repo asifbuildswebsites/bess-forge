@@ -143,7 +143,7 @@ export function SizingModule() {
             <Stat label="Total Cells" value={formatNum(rackSeriesCells * rackParallelStrings)} sub="live rack count" />
           </div>
 
-          <div className="mt-8 rounded-md border border-border bg-void/40 p-4">
+          <div className="mt-8 rounded-md border border-border bg-background/40 p-5">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Cells in Series: 250 @ 800V bus
@@ -170,47 +170,43 @@ export function SizingModule() {
                 className="w-full accent-pulse-cyan"
               />
             </div>
-            <div className="overflow-x-auto pb-2 -mx-1 px-1 md:mx-0 md:px-0">
-              <div
-                className="grid max-h-[400px] md:max-h-[520px] overflow-auto rounded-sm border border-border bg-background/35 p-3 transition-all duration-300 chart-pan-zoom"
-                style={{ gridTemplateColumns: `repeat(${rackParallelStrings}, minmax(20px, 50px))`, gap: "0.25rem" }}
-              >
-                {Array.from({ length: rackSeriesCells * rackParallelStrings }).map((_, i) => {
-                  const series = Math.floor(i / rackParallelStrings) + 1;
-                  const parallel = (i % rackParallelStrings) + 1;
-                  const id = `S${series} × P${parallel}`;
-                  const isSelected = selectedCell === id;
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setSelectedCell(id)}
-                      className={`aspect-square max-h-[50px] max-w-[50px] min-w-5 border text-[0px] transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 focus:outline-none focus:ring-1 ${cellTone} ${
-                        isSelected ? `ring-1 ${selectedCellTone}` : ""
-                      }`}
-                      title={`${id} — ${isHot ? "Hot" : isWarm ? "Warm" : "Normal"}`}
-                      aria-label={`${id} ${isHot ? "hot" : isWarm ? "warm" : "normal"}`}
-                    >
-                      {id}
-                    </button>
-                  );
-                })}
+            <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="rounded-md border border-border bg-panel/70 p-5">
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Representative Rack</div>
+                    <div className="mt-1 text-xs text-foreground/75">Clean rack-level view, not individual cell blocks.</div>
+                  </div>
+                  <div className={`rounded-full border px-3 py-1 data-cell text-[10px] uppercase ${cellTone}`}>
+                    {isHot ? "Hot" : isWarm ? "Warm" : "Normal"}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {Array.from({ length: Math.min(8, Math.max(4, Math.ceil(rackParallelStrings / 4))) }).map((_, index) => (
+                    <div key={index} className="h-32 rounded border border-pulse-cyan/25 bg-background/55 p-2 transition-all duration-300 hover:border-pulse-cyan/60">
+                      <div className="h-full rounded-sm border border-border bg-[linear-gradient(180deg,var(--panel),var(--void))] p-2">
+                        <div className="grid h-full grid-rows-5 gap-1">
+                          {Array.from({ length: 5 }).map((__, moduleIndex) => (
+                            <div key={moduleIndex} className={`rounded-sm border ${cellTone}`} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-md border border-border bg-panel/70 p-5">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Rack Summary</div>
+                <div className="mt-5 space-y-3">
+                  <LegendItem label="Total cells" value={`${rackSeriesCells} × ${rackParallelStrings} = ${formatNum(rackSeriesCells * rackParallelStrings)}`} />
+                  <LegendItem label="Voltage" value={`${rackSeriesCells} × ${chemistryVoltage}V = ${formatNum(nominalStringVoltage, 0)}V`} />
+                  <LegendItem label="Capacity / string" value={`${formatNum(capacityPerStringKWh, 0)} kWh`} />
+                </div>
               </div>
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-3 data-cell text-[10px] text-muted-foreground">
-              <StatusDot className="bg-pulse-cyan" label="Normal" />
-              <StatusDot className="bg-pulse-amber" label="Warm" />
-              <StatusDot className="bg-pulse-red" label="Hot" />
-              {selectedCell && <span className="text-foreground">Selected: {selectedCell}</span>}
-            </div>
             <div className="mt-5 grid gap-3 md:grid-cols-[1fr_0.8fr]">
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <LegendItem label="Total cells" value={`${rackSeriesCells} × ${rackParallelStrings} = ${formatNum(rackSeriesCells * rackParallelStrings)}`} />
-                <LegendItem label="Voltage" value={`${rackSeriesCells} × ${chemistryVoltage}V = ${formatNum(nominalStringVoltage, 0)}V`} />
-                <LegendItem
-                  label="Capacity / string"
-                  value={`${formatNum(capacityPerStringKWh, 0)} kWh`}
-                />
+              <div className="rounded-sm border border-border bg-background/35 p-3 text-xs text-foreground/80">
+                Representative rack modules scale with the parallel-string slider while preserving a consulting-style summary.
               </div>
               <div className="rounded-sm border border-border bg-background/35 p-3 space-y-3">
                 <div className="flex items-center justify-between">
