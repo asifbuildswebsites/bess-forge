@@ -14,7 +14,7 @@ export function ModuleTabs() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2">
-      <nav className="flex max-w-full overflow-x-auto rounded-sm border border-border bg-void p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <nav className="flex max-w-full overflow-x-auto rounded-md border border-border bg-panel/70 p-1.5 shadow-sm [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {tabs.map((t) => {
           const active = path === t.to;
           const Icon = t.icon;
@@ -22,10 +22,10 @@ export function ModuleTabs() {
             <Link
               key={t.id}
               to={t.to}
-              className={`flex shrink-0 items-center gap-2 rounded-sm px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all md:px-4 ${
+              className={`flex shrink-0 items-center gap-2 rounded px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all md:px-4 ${
                 active
-                  ? "text-pulse-cyan bg-pulse-cyan/10 shadow-[0_0_10px_rgba(0,242,255,0.1)]"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "text-background bg-pulse-cyan shadow-[0_0_18px_oklch(0.85_0.18_200_/_0.18)]"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
               }`}
             >
               <Icon className="size-3.5" />
