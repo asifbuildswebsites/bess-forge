@@ -266,10 +266,12 @@ export function EconomicsModule() {
         />
         <MetricCard
           label={`NPV @ 10% (${thermal.years}y)`}
-          value={formatINR(economics.npv)}
-          variant={economics.npv > 0 ? "green" : "red"}
+          value={showGuidedOnboarding ? "Setup needed" : formatINR(economics.npv)}
+          variant={showGuidedOnboarding ? "cyan" : economics.npv > 0 ? "green" : "red"}
           hint={
-            economics.replacementYear
+            showGuidedOnboarding
+              ? "complete revenue stack below"
+              : economics.replacementYear
               ? `incl. cell replace yr ${economics.replacementYear}`
               : "no replacement"
           }
@@ -446,8 +448,8 @@ export function EconomicsModule() {
             <div className="flex-1">
               <div className="text-sm font-medium">Demand Charge Reduction</div>
               <div className="text-[11px] text-muted-foreground mt-0.5">
-                Annual savings = Contracted kVA × ₹400 × 12. Adds to Annual Savings, NPV, and
-                Payback.
+                Annual savings = Contracted kVA × ₹{revenue.demandRatePerKVA} × 12. Adds to Annual
+                Savings, NPV, and Payback.
               </div>
             </div>
             <Switch
@@ -473,7 +475,8 @@ export function EconomicsModule() {
               />
               <div className="flex justify-between text-[11px] pt-1">
                 <span className="text-muted-foreground">
-                  {revenue.contractedKVA.toLocaleString("en-IN")} kVA × ₹400 × 12
+                  {revenue.contractedKVA.toLocaleString("en-IN")} kVA × ₹
+                  {revenue.demandRatePerKVA} × 12
                 </span>
                 <span className="data-cell text-pulse-green">
                   + {formatINR(economics.demandChargeSavings)}/yr
