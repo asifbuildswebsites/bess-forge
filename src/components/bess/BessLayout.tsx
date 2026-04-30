@@ -15,12 +15,13 @@ import {
 
 export function BessLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="dark min-h-screen flex bg-background text-foreground">
+    <div className="dark min-h-screen bg-background text-foreground">
+      <StatusBanner />
+      <div className="flex min-h-[calc(100vh-184px)]">
       <Sidebar />
       <main className="flex-1 flex flex-col min-w-0">
-        <StatusBanner />
-        <div className="flex items-center gap-3 border-b border-border bg-panel/30 px-4 py-4 md:px-8 md:py-5">
-          <Drawer>
+        <div className="flex items-center gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-xl md:px-8">
+          <Drawer direction="top">
             <DrawerTrigger asChild>
               <Button
                 size="icon"
@@ -31,7 +32,7 @@ export function BessLayout({ children }: { children: ReactNode }) {
                 <Settings2 className="size-4" />
               </Button>
             </DrawerTrigger>
-            <DrawerContent className="max-h-[88svh] border-border bg-panel text-foreground md:hidden">
+            <DrawerContent className="bottom-auto top-0 max-h-[88svh] rounded-b-[10px] rounded-t-none border-border bg-panel text-foreground md:hidden">
               <DrawerHeader className="sr-only">
                 <DrawerTitle>Settings</DrawerTitle>
                 <DrawerDescription>Battery sizing and economics controls.</DrawerDescription>
@@ -41,8 +42,9 @@ export function BessLayout({ children }: { children: ReactNode }) {
           </Drawer>
           <ModuleTabs />
         </div>
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">{children}</div>
+        <div className="flex-1 p-4 md:p-8">{children}</div>
       </main>
+      </div>
     </div>
   );
 }
