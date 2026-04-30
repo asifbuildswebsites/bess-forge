@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useBess } from "@/store/bess-store";
 import { MetricCard } from "@/components/bess/MetricCard";
 import { Button } from "@/components/ui/button";
@@ -42,9 +42,11 @@ export function EconomicsModule() {
     thermalResult,
     dispatch,
     revenue,
+    hasUserModifiedInputs,
     setRevenue,
     setInputs,
   } = useBess();
+  const revenueSectionRef = useRef<HTMLDivElement | null>(null);
   const [reportMeta, setReportMeta] = useState(() => ({
     projectName: "Battery Energy Storage Project",
     clientName: "Client Name",
@@ -57,6 +59,8 @@ export function EconomicsModule() {
 
   const simplePayback = isFinite(economics.paybackYears) ? economics.paybackYears : null;
   const npvIsNegative = economics.npv < 0;
+  const showGuidedOnboarding = npvIsNegative && !hasUserModifiedInputs;
+  const showNegativeNpvWarning = npvIsNegative && hasUserModifiedInputs;
   const cashFlows = computeCashFlows(economics, thermalResult, 15);
   const irr = computeIrr([-economics.capex, ...cashFlows.map((row) => row.netCashFlow)]);
   const sensitivityRows = [
@@ -147,6 +151,16 @@ export function EconomicsModule() {
       swing: Math.abs(high - low),
     };
   }
+
+  const enableDemandChargeAndScroll = () => {
+    setRevenue({
+      demandCharge: true,
+      contractedKVA: Math.max(revenue.contractedKVA, 600),
+    });
+    window.setTimeout(() => {
+      revenueSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+  };
 
   return (
     <div className="space-y-8">
@@ -333,7 +347,31 @@ export function EconomicsModule() {
         </CollapsibleContent>
       </Collapsible>
 
-      {npvIsNegative && (
+      {showGuidedOnboarding && (
+        <div className="border border-pulse-cyan/50 bg-pulse-cyan/10 p-5 glow-cyan">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="data-cell text-xs font-bold uppercase tracking-widest text-pulse-cyan">
+                Complete business case setup
+              </div>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-foreground/85">
+                This default scenario shows arbitrage-only revenue. Enable Demand Charge Reduction below
+                or adjust your load inputs to model a complete business case — most Indian C&amp;I
+                projects become viable with DCR included.
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={enableDemandChargeAndScroll}
+              className="bg-pulse-cyan text-void hover:bg-pulse-cyan/90 glow-cyan font-bold"
+            >
+              Enable DCR &amp; Recalculate
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {showNegativeNpvWarning && (
         <div className="border border-pulse-amber/60 bg-pulse-amber/10 p-5 glow-amber">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-3">
@@ -399,7 +437,7 @@ export function EconomicsModule() {
         </div>
       )}
 
-      <div className="bg-panel border border-border p-6">
+      <div ref={revenueSectionRef} className="bg-panel border border-border p-6 scroll-mt-24">
         <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
           Additional Revenue Streams
         </h3>
