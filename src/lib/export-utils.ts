@@ -11,6 +11,11 @@ export interface ExportState {
   thermal: ThermalExportState;
 }
 
+type PartialExportState = {
+  inputs?: Partial<SizingInputs>;
+  thermal?: Partial<ThermalExportState>;
+};
+
 /**
  * Generate a shareable URL with all inputs encoded as query params
  */
@@ -120,7 +125,7 @@ export async function copySpecsToClipboard(
 /**
  * Load state from URL query parameters
  */
-export function loadStateFromUrl(): Partial<ExportState> | null {
+export function loadStateFromUrl(): PartialExportState | null {
   const params = new URLSearchParams(window.location.search);
   
   // Check if any BESS params exist
@@ -128,7 +133,7 @@ export function loadStateFromUrl(): Partial<ExportState> | null {
     return null;
   }
   
-  const state: Partial<ExportState> = {};
+  const state: PartialExportState = {};
   
   // Parse chemistry
   const chem = params.get("chem")?.toUpperCase() as Chemistry;
