@@ -21,7 +21,7 @@ export function BessLayout({ children }: { children: ReactNode }) {
       <Sidebar />
       <main className="flex-1 flex flex-col min-w-0">
         <div className="sticky top-[184px] z-40 flex items-center gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-xl md:px-8">
-          <Drawer>
+          <Drawer direction="top">
             <DrawerTrigger asChild>
               <Button
                 size="icon"
@@ -32,7 +32,7 @@ export function BessLayout({ children }: { children: ReactNode }) {
                 <Settings2 className="size-4" />
               </Button>
             </DrawerTrigger>
-            <DrawerContent className="max-h-[88svh] border-border bg-panel text-foreground md:hidden">
+            <DrawerContent className="bottom-auto top-0 max-h-[88svh] rounded-b-[10px] rounded-t-none border-border bg-panel text-foreground md:hidden">
               <DrawerHeader className="sr-only">
                 <DrawerTitle>Settings</DrawerTitle>
                 <DrawerDescription>Battery sizing and economics controls.</DrawerDescription>
