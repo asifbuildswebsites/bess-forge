@@ -69,7 +69,7 @@ export function StatusBanner() {
           </div>
         </div>
       </div>
-      <div className="grid gap-3 border-t border-border bg-panel/45 px-4 py-4 sm:grid-cols-2 lg:grid-cols-6 md:px-8">
+      <div className="flex gap-3 overflow-x-auto border-t border-border bg-panel/45 px-4 py-3 md:grid md:grid-cols-3 md:overflow-visible md:px-8 lg:grid-cols-6">
         <SummaryMetric label="Nameplate" value={`${(sizing.nameplateKWh / 1000).toFixed(2)} MWh`} sub={`${powerMW} MW`} tone="text-pulse-cyan" />
         <SummaryMetric label="C-rate" value={`${sizing.cRate.toFixed(2)}C`} sub={sizing.cRate < 1 ? "Nominal" : "Review"} tone={sizing.cRate > 2 ? "text-pulse-red" : sizing.cRate >= 1 ? "text-pulse-amber" : "text-pulse-green"} />
         <SummaryMetric label="Live tariff" value={liveTariff === null ? "—" : `₹${liveTariff.toFixed(2)}`} sub="per kWh" tone={liveTariff !== null && liveTariff >= 7 ? "text-pulse-red" : "text-pulse-green"} />
@@ -83,9 +83,9 @@ export function StatusBanner() {
 
 function SummaryMetric({ label, value, sub, tone }: { label: string; value: string; sub: string; tone: string }) {
   return (
-    <div className="rounded-md border border-border bg-background/55 p-4 shadow-sm">
+    <div className="min-w-[172px] rounded-md border border-border bg-background/55 p-3 shadow-sm md:min-w-0 md:p-4">
       <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</div>
-      <div className={`data-cell mt-2 text-xl font-semibold ${tone}`}>{value}</div>
+      <div className={`data-cell mt-2 text-lg font-semibold md:text-xl ${tone}`}>{value}</div>
       <div className="mt-1 text-[11px] text-muted-foreground">{sub}</div>
     </div>
   );
