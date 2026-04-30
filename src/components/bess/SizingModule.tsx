@@ -5,7 +5,7 @@ import { IndiaGridCompliance } from "@/components/bess/IndiaGridCompliance";
 import { formatNum } from "@/lib/bess-calc";
 import { copyShareableLink, copySpecsToClipboard, type ExportState } from "@/lib/export-utils";
 import { useToast } from "@/components/ui/toast";
-import { useCallback } from "react";
+import { useState, useCallback } from "react";
 import { AlertTriangle, CheckCircle2, RefreshCw, Info, FileDown, Link2, Copy } from "lucide-react";
 
 export function SizingModule() {
@@ -76,11 +76,6 @@ export function SizingModule() {
     : isWarm
       ? "border-pulse-amber/60 bg-pulse-amber/25 text-pulse-amber"
       : "border-pulse-cyan/55 bg-pulse-cyan/18 text-pulse-cyan";
-  const selectedCellTone = isHot
-    ? "ring-pulse-red bg-pulse-red/55"
-    : isWarm
-      ? "ring-pulse-amber bg-pulse-amber/50"
-      : "ring-pulse-cyan bg-pulse-cyan/45";
   const footprintScale = Math.max(0.28, Math.min(1, Math.sqrt(sizing.footprintM2 / 145)));
   const cRateStatus =
     sizing.cRate < 1
