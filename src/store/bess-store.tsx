@@ -59,7 +59,7 @@ export function BessProvider({ children }: { children: ReactNode }) {
     todArbitrage: true,
     demandCharge: true,
     contractedKVA: 600,
-    demandRatePerKVA: 400,
+    demandRatePerKVA: 600,
   });
 
   const setInputs = useCallback(
