@@ -19,6 +19,7 @@ interface BessState {
   inputs: SizingInputs;
   thermal: ThermalUiInputs;
   revenue: RevenueStreams;
+  hasUserModifiedInputs: boolean;
   setInputs: (p: Partial<SizingInputs>) => void;
   setThermal: (p: Partial<ThermalUiInputs>) => void;
   setRevenue: (p: Partial<RevenueStreams>) => void;
@@ -38,9 +39,9 @@ const Ctx = createContext<BessState | null>(null);
 
 export function BessProvider({ children }: { children: ReactNode }) {
   const [inputs, setInputsState] = useState<SizingInputs>({
-    peakLoadKW: 1000,
-    desiredEnergyMWh: 4,
-    autonomyHours: 4,
+    peakLoadKW: 500,
+    desiredEnergyMWh: 1,
+    autonomyHours: 2,
     solarKWp: 500,
     chemistry: "LFP",
     cellCapacityAh: 280,
@@ -48,6 +49,7 @@ export function BessProvider({ children }: { children: ReactNode }) {
     dodPct: 90,
     rteEffPct: 92,
   });
+  const [hasUserModifiedInputs, setHasUserModifiedInputs] = useState(false);
   const [thermal, setThermalState] = useState<ThermalUiInputs>({
     ambientC: 35,
     dailyCycles: 1.2,
@@ -55,21 +57,30 @@ export function BessProvider({ children }: { children: ReactNode }) {
   });
   const [revenue, setRevenueState] = useState<RevenueStreams>({
     todArbitrage: true,
-    demandCharge: false,
-    contractedKVA: 500,
-    demandRatePerKVA: 400,
+    demandCharge: true,
+    contractedKVA: 600,
+    demandRatePerKVA: 600,
   });
 
   const setInputs = useCallback(
-    (p: Partial<SizingInputs>) => setInputsState((s) => ({ ...s, ...p })),
+    (p: Partial<SizingInputs>) => {
+      setHasUserModifiedInputs(true);
+      setInputsState((s) => ({ ...s, ...p }));
+    },
     [],
   );
   const setThermal = useCallback(
-    (p: Partial<ThermalUiInputs>) => setThermalState((s) => ({ ...s, ...p })),
+    (p: Partial<ThermalUiInputs>) => {
+      setHasUserModifiedInputs(true);
+      setThermalState((s) => ({ ...s, ...p }));
+    },
     [],
   );
   const setRevenue = useCallback(
-    (p: Partial<RevenueStreams>) => setRevenueState((s) => ({ ...s, ...p })),
+    (p: Partial<RevenueStreams>) => {
+      setHasUserModifiedInputs(true);
+      setRevenueState((s) => ({ ...s, ...p }));
+    },
     [],
   );
 
@@ -129,6 +140,7 @@ export function BessProvider({ children }: { children: ReactNode }) {
         inputs,
         thermal,
         revenue,
+        hasUserModifiedInputs,
         setInputs,
         setThermal,
         setRevenue,
