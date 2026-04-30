@@ -277,7 +277,7 @@ export function Sidebar() {
   return (
     <aside
       suppressHydrationWarning
-      className="hidden w-[300px] max-w-[300px] shrink-0 border-r border-border bg-panel/80 md:flex flex-col self-start sticky top-[184px] h-[calc(100vh-184px)]"
+      className="hidden w-[300px] max-w-[300px] shrink-0 border-r border-border bg-panel/80 md:flex flex-col self-start sticky top-0 h-screen"
     >
       <SidebarControls />
     </aside>
