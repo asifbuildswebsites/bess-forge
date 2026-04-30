@@ -20,7 +20,7 @@ export function BessLayout({ children }: { children: ReactNode }) {
       <div className="flex min-h-[calc(100vh-184px)]">
       <Sidebar />
       <main className="flex-1 flex flex-col min-w-0">
-        <div className="sticky top-[184px] z-40 flex items-center gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-xl md:px-8">
+        <div className="flex items-center gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-xl md:px-8">
           <Drawer direction="top">
             <DrawerTrigger asChild>
               <Button
