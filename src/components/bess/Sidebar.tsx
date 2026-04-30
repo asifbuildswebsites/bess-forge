@@ -24,14 +24,15 @@ function SliderRow({
   unit: string;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3 rounded-md border border-border bg-background/35 p-3">
       <div className="flex justify-between text-xs">
-        <label className="text-foreground/80">{label}</label>
-        <span className="data-cell text-pulse-cyan">
+        <label className="font-medium text-foreground/85">{label}</label>
+        <span className="data-cell font-semibold text-pulse-cyan">
           {value.toLocaleString("en-IN")} {unit}
         </span>
       </div>
       <Slider
+        className="py-1"
         value={[value]}
         min={min}
         max={max}
@@ -142,13 +143,13 @@ function SidebarControls() {
 
   return (
     <>
-      <div className="p-4 md:p-6 border-b border-border">
+      <div className="p-4 md:p-5 border-b border-border">
         <div className="flex items-center gap-2 md:gap-3">
           <div className="size-8 md:size-9 bg-pulse-cyan glow-cyan rounded-sm flex items-center justify-center text-void font-bold shrink-0">
             B
           </div>
           <div className="min-w-0">
-            <h1 className="font-semibold tracking-tight text-xs md:text-sm truncate">BESS-Calc</h1>
+            <h1 className="font-semibold tracking-tight text-xs md:text-sm truncate">Input Console</h1>
             <p className="text-[9px] md:text-[10px] text-muted-foreground data-cell tracking-widest hidden sm:block">
               INTERACTIVE SIZING
             </p>
@@ -156,8 +157,8 @@ function SidebarControls() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-5">
-        <section className="space-y-5">
+      <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-5">
+        <section className="space-y-4">
           <h3 className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase">
             Battery Sizing Calculator
           </h3>
@@ -304,7 +305,7 @@ function SidebarControls() {
         </section>
       </div>
 
-      <div className="p-4 border-t border-border bg-void/40 space-y-2">
+      <div className="p-4 border-t border-border bg-background/45 space-y-2">
         <div className="flex items-center gap-2">
           <div className="size-2 rounded-full bg-pulse-green animate-pulse" />
           <span className="text-[10px] data-cell text-muted-foreground uppercase tracking-wider">
