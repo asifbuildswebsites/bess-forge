@@ -5,13 +5,12 @@ import { IndiaGridCompliance } from "@/components/bess/IndiaGridCompliance";
 import { formatNum } from "@/lib/bess-calc";
 import { copyShareableLink, copySpecsToClipboard, type ExportState } from "@/lib/export-utils";
 import { useToast } from "@/components/ui/toast";
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { AlertTriangle, CheckCircle2, RefreshCw, Info, FileDown, Link2, Copy } from "lucide-react";
 
 export function SizingModule() {
   const { sizing, inputs, setInputs, thermal } = useBess();
   const { showToast } = useToast();
-  const [selectedCell, setSelectedCell] = useState<string | null>(null);
   const [isRecalculating, setIsRecalculating] = useState(false);
 
   const handleRecalculate = useCallback(() => {
